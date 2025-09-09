@@ -2,7 +2,7 @@ import os
 
 SussyWord = ("Urgent", "Verify", "Account", "Password")
 
-folder_path = r"C:\Users\go923\OneDrive\Desktop\SIT\Prog FUnd\DataSet\hard_ham\hard_ham"
+folder_path = r"C:\Users\go923\Documents\Phishing-Email-Detector-LAB-P7-4\datasets"
 output_file = "combined.mbox"
 
 files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
