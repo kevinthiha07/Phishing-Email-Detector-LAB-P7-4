@@ -1,7 +1,6 @@
 import os
 import email
 
-# Suspicious keywords list
 SUSPICIOUS_KEYWORDS = [
     "urgent", "verify", "account", "password", "click", "login",
     "bank", "update", "confirm", "limited", "immediately", "winner"
@@ -18,18 +17,15 @@ def keyword_position_scoring(subject: str, body: str) -> int:
     subject_lower = subject.lower()
     body_lower = body.lower()
 
-    # Score keywords in subject
     for keyword in SUSPICIOUS_KEYWORDS:
         if keyword in subject_lower:
             score += 5
 
-    # Score keywords in first 200 chars of body
     early_body = body_lower[:200]
     for keyword in SUSPICIOUS_KEYWORDS:
         if keyword in early_body:
             score += 3
 
-    # Score keywords elsewhere in body
     for keyword in SUSPICIOUS_KEYWORDS:
         if keyword in body_lower[200:]:
             score += 1
@@ -47,10 +43,8 @@ def extract_subject_body(filepath: str):
 
     msg = email.message_from_string(raw_email)
 
-    # Extract subject
     subject = msg.get("Subject", "")
 
-    # Extract body
     body = ""
     if msg.is_multipart():
         for part in msg.walk():
