@@ -9,7 +9,7 @@ def extract_domain(email):
         return None
 
 def is_valid_domain_format(domain):
-    """Check if the domain has a valid format (e.g., domain.tld)."""
+
     # Check if domain exists and contains a dot
     if not domain or '.' not in domain: 
         return False
