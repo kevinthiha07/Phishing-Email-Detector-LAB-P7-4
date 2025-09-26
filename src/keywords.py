@@ -65,4 +65,5 @@ if __name__ == "__main__":
             subject, body = extract_subject_body(filepath)
             SussCounted = count_suspicious_words(subject, body, SUSSY_WORDS)
             summary = ", ".join(f"{k}:{v}" for k, v in SussCounted.items())
-            print(f"{filename} | Subject: {subject[:60]} | Keyword Counter: {summary}")
+            total = sum(SussCounted.values())
+            print(f"{filename} | Subject: {subject[:60]} | Total Keywords Found: {total} | Keywords: {summary} ")
