@@ -1,32 +1,68 @@
 import os
+import email
+import sys
 
-SussyWord = ("Urgent", "Verify", "Account", "Password")
+SUSSY_WORDS = ["Urgent", "Verify", "Account", "Password", "Day"]
 
-folder_path = r"C:\Users\go923\Documents\Phishing-Email-Detector-LAB-P7-4\datasets"
-output_file = "combined.mbox"
 
-files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+def count_suspicious_words(subject, body, SUSSY_WORDS):
+    """
+    Count occurrences of suspicious words in subject and body.
+    Returns a dictionary {word: count}.
+    """
+    SusCount = {}
+    # Convert to lower for case-insensitive matching
+    subject_lower = subject.lower()
+    body_lower = body.lower()
+    for Kword in SUSSY_WORDS:
+        count = subject_lower.count(Kword.lower()) + body_lower.count(Kword.lower())
+        SusCount[Kword] = count
+    return SusCount
 
-with open(output_file, 'w', encoding='utf-8') as out_f:
-    for filename in files:
-        file_path = os.path.join(folder_path, filename)
-        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            out_f.write(f.read())
-            out_f.write('\n\n')  # Separate messages with blank lines
+def extract_subject_body(filepath: str):
+    """
+    Extract subject and body from a raw email file.
+    Handles plain text and HTML formats.
+    """
+    with open(filepath, "r", encoding="latin1") as f:
+        raw_email = f.read()
 
-print(f"Combined {len(files)} messages into {output_file}")
+    msg = email.message_from_string(raw_email)
 
-# Set the path to your mbox file
-mbox_path = "combined.mbox"
-characters_to_check = ["Urgent", "Verify", "Account", "Password"]  # Add any characters you want to check
+    # Extract subject
+    subject = msg.get("Subject", "")
 
-# Read the entire mbox file
-with open(mbox_path, 'r', encoding='utf-8', errors='ignore') as f:
-    mbox_content = f.read()
+    # Extract body
+    body = ""
+    if msg.is_multipart():
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == "text/plain":
+                try:
+                    body = part.get_payload(decode=True).decode(errors="ignore")
+                except:
+                    body = part.get_payload()
+                break
+            elif content_type == "text/html" and not body:  # fallback if no plain text
+                try:
+                    body = part.get_payload(decode=True).decode(errors="ignore")
+                except:
+                    body = part.get_payload()
+    else:
+        try:
+            body = msg.get_payload(decode=True).decode(errors="ignore")
+        except:
+            body = msg.get_payload()
 
-# Count occurrences
-char_counts = {char: mbox_content.count(char) for char in characters_to_check}
+    return subject, body
 
-# Print results
-for char, count in char_counts.items():
-    print(f"Character '{char}' found {count} times.")
+if __name__ == "__main__":
+    DATASET_FOLDER = "datasets"  # adjust this if needed
+
+    for filename in os.listdir(DATASET_FOLDER):
+        filepath = os.path.join(DATASET_FOLDER, filename)
+        if os.path.isfile(filepath):
+            subject, body = extract_subject_body(filepath)
+            SussCounted = count_suspicious_words(subject, body, SUSSY_WORDS)
+            summary = ", ".join(f"{k}:{v}" for k, v in SussCounted.items())
+            print(f"{filename} | Subject: {subject[:60]} | Keyword Counter: {summary}")
