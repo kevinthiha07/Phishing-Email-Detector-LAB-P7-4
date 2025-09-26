@@ -1,0 +1,312 @@
+DATASET EMAIL ANALYSIS REPORT
+==================================================
+
+Dataset: C:\Users\User\OneDrive\Documents\Phishing-Email-Detector-LAB-P7-4\datasets
+Total files processed: 102
+Total emails extracted: 100
+Safe emails: 1
+Suspicious emails: 99
+Invalid emails: 0
+
+DETAILED RESULTS:
+----------------------------------------
+1. Online#3.19578.34-UgGTgZFN19NAr9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+2. Online#3.19584.83-p1SYlJ1blFvQjRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+3. Online#3.19586.b5-9w0blztbvHPdZdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+4. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+5. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+6. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+7. 2.20290.44-t9bsgc0tYwDu.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+8. Online#3.19592.a8-JNyKlW9O8FdiLsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+9. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+10. Online#3.19658.4b-VXMQgNtUP_hbAdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+11. Online#3.19660.88-olLIlW2o6IOeGRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+12. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+13. Online#3.19676.e7-ldDFl1QrfB8URRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+14. Online#3.19685.54-2t7_gc22RoTI4sRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+15. Online#3.19687.75-gWr1gbt2IZA1r9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+16. Online#3.19692.cd-kEiTl7czTUOatRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+17. Online#3.19700.89-xNOclp13QVGIDsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+18. Online#3.19690.d9-iS5vl-4yBSBWq9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+19. Online#3.19703.9d-Vzezlg_fmMczm9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+20. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+21. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+22. Online#3.19699.f7-cwsBl8-Kok0ajsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+23. Online#3.19785.b8-Opw9lWtyc6p9xsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+24. Online#3.19725.55-A8YAgb1NX5rYkdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+25. Online#3.19799.13-cLBKgHwZrJFX3dRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+26. 2.20367.04-Dn9ZguCXF_6U.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+27. Online#3.19801.5a-SW-tgr_JMGPQK9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+28. Online#3.19810.0b-J216gBVtducSVdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+29. Online#3.19816.79-jnsygj5uv8NiX9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+30. Online#3.19818.db-jpH2lYGz6mGOssRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+31. Online#3.19820.a5-ydZylz9lGW0yrsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+32. Online#3.19822.84-7a8Hl0_lygzZARRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+33. Online#3.19832.06-muuDgykAuGh_FdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+34. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+35. Online#3.19846.2a-726zgP3UI7kTO9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+36. Online#3.19856.0b-J216gBVtducSysRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+37. Online#3.19860.f9-f6ASlANZLfc4x9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+38. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+39. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+40. Online#3.19902.9e-vhsslwTcJGrvPdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+41. Online#3.19908.0a-BsA8gPyVcnFqAdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+42. 2.20445.33-5_gUgBqXK2vm.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+43. Online#3.19910.c5-QoVul7N9F-iPA9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+44. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+45. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+46. Online#3.19963.a7-m4d9lL5yDbfN5RRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+47. Online#3.19965.2a-726zgP3UI7kTO9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+48. Online#3.19971.bf-06fglL9Xsszda9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+49. Online#3.19986.0c-1vJugZkmTgmCK9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+50. 2.20522.db-Q-H_lYIK6LOe.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+51. 2.20576.84-RV8hl0UTyzYK.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+52. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+53. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+54. Online#3.19976.19-ZxCpgoyrOrAEMRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+55. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+56. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+57. Online#3.20001.96-U3_zlwFfMd5UDdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+58. Online#3.20034.f9-f6ASlANZLfc4HRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+59. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+60. Online#3.20074.fe-hz1flt-yytPTpdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+61. Online#3.20076.0a-BsA8gPyVcnFq3sRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+62. Online#3.20078.0d-FCpDgKyACD7GRdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+63. Online#3.20080.61-hi7ag2S-9fV2Y9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+64. Online#3.20092.f4-61ydl6cOGxh31RRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+65. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+66. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+67. Online#3.20115.09-rB-TgEkNwY9w6RRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+68. Online#3.20107.b2-zRGmlU_93Z0ezsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+69. Online#3.20169.fa-3pmilTNAYqM0ZdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+70. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+71. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+72. Online#3.20207.9d-Vzezlg_fmMczoRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+73. Online#3.20211.ca-blhDlX-_RLpCVsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+74. Online#3.20216.56-c0AXgilV9YMFp9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+75. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+76. Online#3.20230.ac-q5A1l6tzmmPhUdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+77. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+78. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+79. 2.20803.e3-IczdlShkrpJ3.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+80. Online#3.20224.c4-ddW5l6ay9S9K-sRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+81. Online#3.20304.83-p1SYlJ1blFvQjRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+82. Online#3.20284.fc-LmYwlaX_4cin49RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+83. Online#3.20292.e9-wy20lAQKOdqZLsRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+84. Online#3.20314.4f-dCw3gqtNlgTxGdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+85. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+86. Online#3.20330.69-7vDNg2aDG5Ru_9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+87. Online#3.20340.74-k8cCgc95N6xNP9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+88. Online#3.20345.8a-FdJElUl0a335ndRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+89. Online#3.20349.a1-TUc1lp9zMobLddRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+90. Online#3.20351.c6-p402lCSzguclhRRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+91. Online#3.20359.74-k8cCgc95N6xNP9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+92. update@list.theregister.co.uk -> SUSPICIOUS
+   Domain: list.theregister.co.uk
+
+93. Online#3.20339.ef-JR6Xl18mvFh519RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+94. Online#3.20341.24-QI_LgZARqA78CdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+95. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
+96. Online#3.20455.d5-U1ENl7S3adjcY9RR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+97. Online#3.20467.ac-q5A1l6tzmmPhUdRR.1@newsletter.online.com -> SUSPICIOUS
+   Domain: newsletter.online.com
+
+98. 2.20880.71-S6_ngjncfBFy.1@ummail4.unitedmedia.com -> SUSPICIOUS
+   Domain: ummail4.unitedmedia.com
+
+99. subscriptions@gmail.com -> SAFE
+   Domain: gmail.com
+
+100. subscriptions@lockergnome.com -> SUSPICIOUS
+   Domain: lockergnome.com
+
