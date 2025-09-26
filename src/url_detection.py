@@ -116,38 +116,16 @@ def main():
         print(f"Dataset path not found: {DATASET_PATH}")
         return
     
-    # list all files in dataset path
+    # List all files in dataset path
     files = [f for f in glob.glob(os.path.join(DATASET_PATH, '*')) if os.path.isfile(f)]
     
     if not files:
         print("No files found!")
         return
     
-    print("Available emails:")
-    file_number = 1
+    # Analyze ALL files automatically
     for file_path in files:
-        print(f"{file_number}. {os.path.basename(file_path)}")
-        file_number += 1
-    
-    # asking for user input
-    while True:
-        try:
-            choice = input("\nEnter email number (q to quit): ").strip()
-            if choice.lower() == 'q':
-                break
-            
-            idx = int(choice) - 1
-            if idx >= 0 and idx < len(files):
-                analyze_email(files[idx])
-                
-                if input("\nAnalyze another? (y/n): ").lower() != 'y':
-                    break
-            else:
-                print(f"Enter 1-{len(files)}")
-                
-        except (ValueError, KeyboardInterrupt):
-            print("\nGoodbye!")
-            break
-
+        analyze_email(file_path)
+        
 if __name__ == "__main__":
     main()
