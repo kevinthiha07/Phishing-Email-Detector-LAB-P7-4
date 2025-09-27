@@ -2,7 +2,7 @@ import os
 import re
 
 def extract_domain(email):
-    """Extract the domain part from an email address."""
+    #Extract the domain part from an email address.
     if email and '@' in email:
         return email.split('@')[1].lower()
     else:
@@ -10,38 +10,38 @@ def extract_domain(email):
 
 def is_valid_domain_format(domain):
 
-    # Check if domain exists and contains a dot
+    #check if domain exists and contains a dot
     if not domain or '.' not in domain: 
         return False
     
-    # Split domain into parts and validate
+    #split domain into parts and validate
     parts = domain.split('.')
     return len(parts) >= 2 and all(parts) and len(parts[-1]) >= 2
 
 def is_domain_whitelisted(email, domains, tlds):
     """Check if the email domain is in the whitelist."""
-    # Extract and validate domain format
+    #extract and validate domain format
     domain = extract_domain(email)
     if not domain or not is_valid_domain_format(domain): 
         return False
     
-    # Split domain into parts
+    #split domain into parts
     parts = domain.split('.')
     
-    # Check if main domain (e.g., 'gmail' from 'gmail.com') is whitelisted
+    #check if main domain (e.g., 'gmail' from 'gmail.com') is whitelisted
     if parts[0] not in domains: 
         return False
     
-    # Create list of TLDs to check (single and two-part TLDs)
+    #create list of TLDs to check (single and two-part TLDs)
     tld_checks = [parts[-1]]  # Single TLD (e.g., 'com')
     
-    # Add two-part TLD if available (e.g., 'co.uk')
+    #add two-part TLD if available (e.g., 'co.uk')
     if len(parts) >= 3:
         tld_checks.append(f"{parts[-2]}.{parts[-1]}")
     else:
         tld_checks.append(None)
     
-    # Return True if any TLD version is in the whitelist
+    #Return True if any TLD version is in the whitelist
     return any(tld in tlds for tld in tld_checks if tld)
 
 def load_whitelist():
