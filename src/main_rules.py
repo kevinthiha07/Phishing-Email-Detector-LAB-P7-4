@@ -1,10 +1,10 @@
+from flask import Flask, render_template
 from whitelist import whitelist_score
 from keywords import keyword_score
 from keyword_position import keyword_position_score
 from edit_distance_check import edit_distance_score
 from url_detection import url_score
 from final_risk_scores import final_risk_score
-from flask import Flask, render_template
 from keywords import analyze_folder
 
 app = Flask(__name__)
