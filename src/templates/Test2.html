@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sussy Checks Sussers</title>
+    <style>
+        body {
+            background-color: #eeeeee;
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            padding: 20px;
+        }
+        .section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .analysis-section {
+            background-color: #f8f9fa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .valid-table th {
+            background-color: #90EE90;
+        }
+        .suspicious-table th {
+            background-color: #FFB6C1;
+        }
+        .keyword-table th {
+            background-color: #ffcc00;
+        }
+        .status-valid {
+            color: green;
+            font-weight: bold;
+        }
+        .status-suspicious {
+            color: red;
+            font-weight: bold;
+        }
+        .news-section {
+            background-color: #ffffff;
+            margin: 20px 0;
+        }
+        .news-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .stats-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header style="text-align: center;">
+            <h2>Sussy Checks The Sussers</h2>
+        </header>
+
+        <!-- Introduction Section -->
+        <section class="section">
+            <h3>Sus Checker 2000</h3>
+            <p><strong>Our Comprehensive Email Security Analysis:</strong></p>
+            <ul>
+                <li><strong>Whitelist Checker:</strong> Verifying the sender's email domain safety</li>
+                <li><strong>Keyword Detection:</strong> Counting suspicious keywords in email content</li>
+                <li><strong>Keyword Position Scoring:</strong> Higher risk scores for strategic keyword placement</li>
+                <li><strong>Edit Distance Check:</strong> Comparing domains against legitimate sources to detect fakes</li>
+                <li><strong>Suspicious URL Detection:</strong> Identifying mismatched links and IP addresses</li>
+                <li><strong>Risk Score Calculator:</strong> Comprehensive threat assessment</li>
+            </ul>
+            <p><strong>Check out your email's security analysis below:</strong></p>
+        </section>
+
+        <!-- Whitelist Analysis Section -->
+        <section class="section analysis-section">
+            <h3 style="text-align: center;">Whitelist Analysis Results</h3>
+
+            <!-- Statistics -->
+            <div class="stats-box">
+                <strong>Summary:</strong> 
+                Processed {{ total_emails }} emails | 
+                {{ valid_emails|length }} Valid | 
+                {{ suspicious_emails|length }} Suspicious
+            </div>
+
+            <!-- Valid Emails Table -->
+            <h4>✅ Valid Emails (Whitelisted Domains)</h4>
+            {% if valid_emails %}
+            <table class="valid-table">
+                <tr>
+                    <th>Email Address</th>
+                    <th>Status</th>
+                    <th>Risk Score</th>
+                </tr>
+                {% for email in valid_emails %}
+                <tr>
+                    <td>{{ email.email }}</td>
+                    <td class="status-valid">{{ email.status }}</td>
+                    <td>{{ email.score }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="text-align: center; color: #666;">No valid emails found in the dataset.</p>
+            {% endif %}
+
+            <!-- Suspicious Emails Table -->
+            <h4>🚨 Suspicious Emails (Non-Whitelisted Domains)</h4>
+            {% if suspicious_emails %}
+            <table class="suspicious-table">
+                <tr>
+                    <th>Email Address</th>
+                    <th>Status</th>
+                    <th>Risk Score</th>
+                </tr>
+                {% for email in suspicious_emails %}
+                <tr>
+                    <td>{{ email.email }}</td>
+                    <td class="status-suspicious">{{ email.status }}</td>
+                    <td>{{ email.score }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="text-align: center; color: #666;">No suspicious emails detected.</p>
+            {% endif %}
+
+            <!-- Whitelist Configuration -->
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h4>ℹ️ Whitelist Configuration</h4>
+                <p><strong>Allowed Domains:</strong> 
+                    {% if whitelist_domains %}
+                        {{ whitelist_domains|join(', ') }}
+                    {% else %}
+                        None configured
+                    {% endif %}
+                </p>
+                <p><strong>Allowed TLDs:</strong> 
+                    {% if whitelist_tlds %}
+                        {{ whitelist_tlds|join(', ') }}
+                    {% else %}
+                        None configured
+                    {% endif %}
+                </p>
+            </div>
+        </section>
+
+        <!-- Keyword Analysis Section -->
+        <section class="section analysis-section">
+            <h3 style="text-align: center;">Keyword Analysis Results</h3>
+            {% if analysis_results %}
+            <table class="keyword-table">
+                <tr>
+                    <th>Filename</th>
+                    <th>Subject</th>
+                    <th>Total Keywords Found</th>
+                    <th>Keywords Breakdown</th>
+                </tr>
+                {% for row in analysis_results %}
+                <tr>
+                    <td>{{ row.filename }}</td>
+                    <td>{{ row.subject }}</td>
+                    <td>{{ row.total }}</td>
+                    <td>{{ row.summary }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="text-align: center; color: #666;">No keyword analysis results available.</p>
+            {% endif %}
+        </section>
+
+        <!-- News Section -->
+        <section class="section news-section">
+            <h3>📰 Technology News Updates</h3>
+            
+            <div class="news-item">
+                <h4><a href="#" style="color: #0066cc; text-decoration: none;">AMD to unveil chip amid earnings woes</a></h4>
+                <p>Advanced Micro Devices will have good news for customers this week, but bad news for investors.</p>
+            </div>
+
+            <div class="news-item">
+                <h4><a href="#" style="color: #0066cc; text-decoration: none;">Rambus revenue up from year ago</a></h4>
+                <p>Rambus, a developer of technology that speeds the performance of computer-memory chips, on Thursday reported fiscal third-quarter earnings that rose from a year ago as revenue steadied.</p>
+            </div>
+
+            <div class="news-item">
+                <h4><a href="#" style="color: #0066cc; text-decoration: none;">Server company releases new AMD model</a></h4>
+                <p>Angstrom Microsystems, a small Boston company specializing in thin servers, has released a new model that squeezes two servers, each with two Advanced Micro Devices Athlon 2100+ processors, into a case that's 1.75-inches, or "1U," thick.</p>
+            </div>
+        </section>
+
+        <!-- Tips Section -->
+        <section class="section news-section">
+            <h3>💡 Tech Tip of the Week</h3>
+            <div class="news-item">
+                <h4><a href="#" style="color: #0066cc; text-decoration: none;">Tune-Up: The mother of all upgrades</a></h4>
+                <p>Looking to completely overhaul your PC? Start by replacing your motherboard for maximum performance gains.</p>
+            </div>
+        </section>
+
+        <!-- Special Feature Section -->
+        <section class="section news-section">
+            <h3>🚀 Special Feature</h3>
+            <div class="news-item">
+                <p>Did you know that ChannelOnline enables you to streamline your sales process by building quotes and orders online?</p>
+                <p>Simply select a customer you've previously entered into ChannelOnline's database and their company information, and a customized price profile is automatically applied to their quote. You can add products as you search the product database and work on multiple quotes at once as you respond to different customer requests throughout the day.</p>
+                <p>
+                    <a href="#" style="color: #0066cc; text-decoration: none;"><strong>Sign up now</strong></a> to streamline your entire buying and selling chain.
+                </p>
+                <p>
+                    <a href="#" style="color: #0066cc; text-decoration: none;"><strong>Tell me more about ChannelOnline.</strong></a>
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #ddd;">
+            <p>Sussy Checks The Sussers &copy; 2024 - Advanced Email Security Analysis</p>
+        </footer>
+    </div>
+</body>
+</html>
