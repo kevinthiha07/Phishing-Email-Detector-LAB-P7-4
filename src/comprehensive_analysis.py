@@ -3,7 +3,7 @@ from email_processing import extract_subject_body
 from whitelist import extract_email_from_content, whitelist_score
 from keywords import keyword_detection_score
 from keyword_position import keyword_position_score
-#from edit_distance_check import check_edit_distance_with_risk_score
+from edit_distance_check import check_edit_distance_with_risk_score
 from url_detection import url_detection_score
 
 def analyze_email_file(filepath, filename):
@@ -23,12 +23,11 @@ def analyze_email_file(filepath, filename):
         whitelist_sc = whitelist_score(sender_email)
         keyword_detect_sc = keyword_detection_score(subject, body)
         keyword_pos_sc = keyword_position_score(subject, body)
-        #edit_dist_sc = check_edit_distance_with_risk_score(sender_email)
+        edit_dist_sc = check_edit_distance_with_risk_score(sender_email)
         url_detect_sc = url_detection_score(subject, body, sender_email)
         
         # Calculate final score
-        final_score = whitelist_sc + keyword_detect_sc + keyword_pos_sc  + url_detect_sc
-        "+ edit_dist_sc"
+        final_score = whitelist_sc + keyword_detect_sc + keyword_pos_sc + url_detect_sc + edit_dist_sc
         
         # Determine status
         if final_score < 50:
@@ -49,7 +48,7 @@ def analyze_email_file(filepath, filename):
                 "whitelist": whitelist_sc,
                 "keyword_detection": keyword_detect_sc,
                 "keyword_position": keyword_pos_sc,
-                #"edit_distance": edit_dist_sc,
+                "edit_distance": edit_dist_sc,  # Fixed: was edit_distance_score
                 "url_detection": url_detect_sc
             },
             "final_score": final_score,

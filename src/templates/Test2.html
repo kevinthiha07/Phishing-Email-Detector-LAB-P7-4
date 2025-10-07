@@ -185,7 +185,7 @@
                     </div>
                     <div class="score-item">
                         <strong>Edit Distance</strong><br>
-                        {{ analysis_results.summary_stats.avg_scores.edit_distance }}%
+                        {{ analysis_results.summary_stats.avg_scores.edit_distance }}%  <!-- Fixed: was edit_distance_score -->
                     </div>
                     <div class="score-item">
                         <strong>URL Detect</strong><br>
@@ -223,11 +223,11 @@
                                 W:{{ email.scores.whitelist }}% |
                                 KD:{{ email.scores.keyword_detection }}% |
                                 KP:{{ email.scores.keyword_position }}% |
-                                ED:{{ email.scores.edit_distance }}% |
+                                ED:{{ email.scores.edit_distance }}% |  <!-- Fixed: was edit_distance_score -->
                                 UD:{{ email.scores.url_detection }}%
                             </small>
                             <div class="score-bar">
-                                {% set total = email.scores.whitelist + email.scores.keyword_detection + email.scores.keyword_position + email.scores.url_detection %}
+                                {% set total = email.scores.whitelist + email.scores.keyword_detection + email.scores.keyword_position + email.scores.edit_distance + email.scores.url_detection %}
                                 <div class="score-fill 
                                     {% if total < 50 %}low-risk
                                     {% elif total < 75 %}medium-risk

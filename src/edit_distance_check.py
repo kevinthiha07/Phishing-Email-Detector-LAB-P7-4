@@ -1,104 +1,78 @@
 import Levenshtein
-import os
 import re
-from typing import List
 
-# Folder path where the files are stored
-folder_path = r'datasets'
+# Known legitimate domains for comparison
+KNOWN_DOMAINS = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "microsoft.com", "google.com", "lockergnome.com"]
 
-# Function to extract emails from a file
-def extract_emails_from_file(file_path: str) -> List[str]:
-    emails = []
-    seen_domains = set()  # To track domains already processed
-    with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
-        lines = file.readlines()
-        for line in lines:
-            if 'From: ' in line or 'Return-Path:' in line:
-                match = re.search(r'<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>', line)
-                if match:
-                    email = match.group(1)
-                    if validate_email(email):
-                        domain = extract_domain(email)
-                        if domain not in seen_domains:
-                            seen_domains.add(domain)
-                            emails.append(email)
-                else:
-                    match = re.search(r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', line)
-                    if match:
-                        email = match.group(1)
-                        if not is_html_like(line) and validate_email(email):
-                            domain = extract_domain(email)
-                            if domain not in seen_domains:
-                                seen_domains.add(domain)
-                                emails.append(email)
-    return emails
-
-# Basic email validation function
-def validate_email(email: str) -> bool:
-    return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email))
-
-# Function to filter out non-email content (HTML or similar)
-def is_html_like(line: str) -> bool:
-    return bool(re.search(r'<[^a-zA-Z0-9._%+-]+>', line))
-
-# Function to extract domain from an email
 def extract_domain(email: str) -> str:
-    if "@" in email and re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-        match = re.search(r'@([a-zA-Z0-9.-]+)', email)
-        if match:
-            return match.group(1)
-    return ""
+    """Extract domain from an email address"""
+    if not email or "@" not in email:
+        return ""
+    
+    match = re.search(r'@([a-zA-Z0-9.-]+)', email)
+    return match.group(1).lower() if match else ""
 
-# Function to process multiple files in the folder
-def process_files_in_folder(folder_path: str) -> List[str]:
-    all_emails = []
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        if os.path.isfile(file_path):
-            print(f"Processing file: {filename}")
-            emails = extract_emails_from_file(file_path)
-            all_emails.extend(emails)
-    return all_emails
-
-# Function to calculate Levenshtein Edit Distance
 def calculate_edit_distance(str1: str, str2: str) -> int:
+    """Calculate Levenshtein Edit Distance between two strings"""
     return Levenshtein.distance(str1, str2)
 
+def edit_distance_score(email_address: str) -> int:
+    """
+    Calculate edit distance risk score - 20% weight
+    
+    Scoring:
+    - Edit distance 1: 20% (high risk - lookalike domain)
+    - Edit distance 2-3: 10% (medium risk)
+    - Edit distance >3: 0% (low risk)
+    - No domain found: 0%
+    """
+    if not email_address or '@' not in email_address:
+        return 0
+    
+    domain = extract_domain(email_address)
+    if not domain:
+        return 0
+    
+    min_distance = float('inf')
+    
+    # Find the closest known domain
+    for known_domain in KNOWN_DOMAINS:
+        distance = calculate_edit_distance(domain, known_domain)
+        if distance < min_distance:
+            min_distance = distance
+    
+    if min_distance == 0:
+        return 0    # Exact match - completely safe
+    elif min_distance == 1:
+        return 20   # Very similar domain
+    elif min_distance <= 3:
+        return 10   # Somewhat similar domain
+    else:
+        return 0    # Not similar enough to be suspicious
 
-#Edit distance check with risk score
-def check_edit_distance_with_risk_score(emails: List[str], known_domains: List[str]) -> None:
-    max_risk = 20  # Max risk % for edit distance 1
-    for email in emails:
+# For backward compatibility with your existing code
+def check_edit_distance_with_risk_score(email_address: str) -> int:
+    """Alias for edit_distance_score to maintain compatibility"""
+    return edit_distance_score(email_address)
+
+# Standalone testing (only runs if file is executed directly)
+if __name__ == "__main__":
+    # Test the function with some examples
+    test_emails = [
+        "user@gmail.com",           # Should return 0 (legitimate)
+        "user@gma1l.com",           # Should return 20 (lookalike)
+        "user@yahoo.com",           # Should return 0 (legitimate) 
+        "user@yaho0.com",           # Should return 20 (lookalike)
+        "user@outlook.com",         # Should return 0 (legitimate)
+        "user@out1ook.com",         # Should return 20 (lookalike)
+        "user@example.com",         # Should return 0 (not similar to known domains)
+    ]
+    
+    print("Testing Edit Distance Scoring:")
+    print("=" * 60)
+    for email in test_emails:
+        score = edit_distance_score(email)
         domain = extract_domain(email)
-        if domain:
-            domain = domain.strip().lower()
-
-            most_similar_domain = None
-            min_distance = float('inf')
-
-            for known_domain in known_domains:
-                known_domain = known_domain.strip().lower()
-                distance = calculate_edit_distance(domain, known_domain)
-                if distance < min_distance:
-                    most_similar_domain = known_domain
-                    min_distance = distance
-
-            if most_similar_domain is not None:
-                if min_distance == 0:
-                    risk_score = 0
-                else:
-                    risk_score = max(0, max_risk * (1 / min_distance))
-                print(f"Email: {email} -> Domain: {domain} | Most Similar Known Domain: {most_similar_domain} | "
-                      f"Edit Distance: {min_distance} | Risk Score: {risk_score:.2f}%")
-
-
-# Testing the function to process files and compare domains
-emails = process_files_in_folder(folder_path)
-
-# Define known legitimate domains
-known_domains = ["gmail.com", "yahoo.com", "outlook.com", 'newsletter.online.com', 'lockergnome.com', 'sprocket.lockergnome.com']
-
-# Check the edit distance between extracted domains and known domains
-#check_edit_distance(emails, known_domains)
-check_edit_distance_with_risk_score(emails, known_domains)
-
+        print(f"Email: {email}")
+        print(f"Domain: {domain} -> Risk Score: {score}%")
+        print("-" * 40)
