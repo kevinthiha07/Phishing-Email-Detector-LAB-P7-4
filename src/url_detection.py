@@ -79,13 +79,15 @@ def analyze_email(file_path):
     suspicious_urls = []
     
     print(f"\nFound {len(urls)} URLs:")
-    for i, url in enumerate(urls, 1):
+    url_count = 1
+    for url in urls:
         is_suspicious, reason = is_suspicious_url(url, sender_domain)
         status = "SUSPICIOUS" if is_suspicious else "SAFE"
-        print(f"{i}. [{status}] {url}")
+        print(f"{url_count}. [{status}] {url}")
         print(f"   Reason: {reason}")
         if is_suspicious:
             suspicious_urls.append(url)
+        url_count += 1
     
     score = 25 if suspicious_urls else 0
     print(f"\nVerdict: {'SUSPICIOUS' if suspicious_urls else 'CLEAN'}")
