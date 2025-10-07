@@ -4,7 +4,7 @@ import re
 from typing import List
 
 # Folder path where the files are stored
-folder_path = r'C:\Users\carol\Documents\Python\Phishing-Email-Detector-LAB-P7-4-1\datasets'
+folder_path = r'C:\Users\carol\Documents\Python\archive\spam_2\spam_2'
 
 # Function to extract emails from a file
 def extract_emails_from_file(file_path: str) -> List[str]:
@@ -64,34 +64,33 @@ def process_files_in_folder(folder_path: str) -> List[str]:
 def calculate_edit_distance(str1: str, str2: str) -> int:
     return Levenshtein.distance(str1, str2)
 
-# Function to compare extracted domains with known legitimate domains and find the most similar one
-def check_edit_distance(emails: List[str], known_domains: List[str]) -> None:
+
+#Edit distance check with risk score
+def check_edit_distance_with_risk_score(emails: List[str], known_domains: List[str]) -> None:
+    max_risk = 20  # Max risk % for edit distance 1
     for email in emails:
-        domain = extract_domain(email)  # Extract the full domain from the email
-        
+        domain = extract_domain(email)
         if domain:
-            # Standardize domain comparison (strip spaces and lowercase)
             domain = domain.strip().lower()
 
-            # Find the known domain with the smallest Levenshtein distance
             most_similar_domain = None
-            min_distance = float('inf')  # Start with a large value for comparison
+            min_distance = float('inf')
 
-            # Loop through the known domains to find the most similar one
             for known_domain in known_domains:
                 known_domain = known_domain.strip().lower()
-
-                # Calculate the Levenshtein distance between the email domain and known domain
                 distance = calculate_edit_distance(domain, known_domain)
-
-                # If this domain is more similar, update the most_similar_domain and min_distance
                 if distance < min_distance:
                     most_similar_domain = known_domain
                     min_distance = distance
 
-            # Print the result for the most similar domain
             if most_similar_domain is not None:
-                print(f"Email: {email} -> Domain: {domain} | Most Similar Known Domain: {most_similar_domain} | Edit Distance: {min_distance}")
+                if min_distance == 0:
+                    risk_score = 0
+                else:
+                    risk_score = max(0, max_risk * (1 / min_distance))
+                print(f"Email: {email} -> Domain: {domain} | Most Similar Known Domain: {most_similar_domain} | "
+                      f"Edit Distance: {min_distance} | Risk Score: {risk_score:.2f}%")
+
 
 # Testing the function to process files and compare domains
 emails = process_files_in_folder(folder_path)
@@ -100,4 +99,6 @@ emails = process_files_in_folder(folder_path)
 known_domains = ["gmail.com", "yahoo.com", "outlook.com", 'newsletter.online.com', 'lockergnome.com', 'sprocket.lockergnome.com']
 
 # Check the edit distance between extracted domains and known domains
-check_edit_distance(emails, known_domains)
+#check_edit_distance(emails, known_domains)
+check_edit_distance_with_risk_score(emails, known_domains)
+
