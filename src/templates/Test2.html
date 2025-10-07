@@ -3,252 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sussy Checks Sussers</title>
+    <title>Phishing Email Analyzer</title>
     <style>
         body {
-            background-color: #eeeeee;
-            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: #ffffff;
-            border: 1px solid #cccccc;
+            background: white;
             padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .section {
-            margin: 40px 0;
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .scoring-system {
+            background: #fff3cd;
             padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
             border: 1px solid #ddd;
-            border-radius: 5px;
         }
-        .analysis-section {
-            background-color: #f8f9fa;
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .score-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin: 20px 0;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 12px;
             text-align: left;
         }
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        .valid-table th {
-            background-color: #90EE90;
+        .safe { color: #28a745; font-weight: bold; }
+        .suspicious { color: #ffc107; font-weight: bold; }
+        .phishing { color: #dc3545; font-weight: bold; }
+        .error { color: #6c757d; font-weight: bold; }
+        .score-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 5px 0;
+            overflow: hidden;
         }
-        .suspicious-table th {
-            background-color: #FFB6C1;
+        .score-fill {
+            height: 100%;
+            border-radius: 10px;
         }
-        .keyword-table th {
-            background-color: #ffcc00;
-        }
-        .status-valid {
-            color: green;
-            font-weight: bold;
-        }
-        .status-suspicious {
-            color: red;
-            font-weight: bold;
-        }
-        .news-section {
-            background-color: #ffffff;
-            margin: 20px 0;
-        }
-        .news-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        .news-item:last-child {
-            border-bottom: none;
-        }
-        .stats-box {
-            background: #e7f3ff;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
+        .low-risk { background: #28a745; }
+        .medium-risk { background: #ffc107; }
+        .high-risk { background: #dc3545; }
+        .no-data {
             text-align: center;
-            font-weight: bold;
+            padding: 40px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header Section -->
-        <header style="text-align: center;">
-            <h2>Sussy Checks The Sussers</h2>
-        </header>
+        <!-- Header -->
+        <div class="header">
+            <h1>🔍 Phishing Email Analyzer</h1>
+            <p>Comprehensive phishing detection using multiple analysis techniques</p>
+        </div>
 
-        <!-- Introduction Section -->
-        <section class="section">
-            <h3>Sus Checker 2000</h3>
-            <p><strong>Our Comprehensive Email Security Analysis:</strong></p>
-            <ul>
-                <li><strong>Whitelist Checker:</strong> Verifying the sender's email domain safety</li>
-                <li><strong>Keyword Detection:</strong> Counting suspicious keywords in email content</li>
-                <li><strong>Keyword Position Scoring:</strong> Higher risk scores for strategic keyword placement</li>
-                <li><strong>Edit Distance Check:</strong> Comparing domains against legitimate sources to detect fakes</li>
-                <li><strong>Suspicious URL Detection:</strong> Identifying mismatched links and IP addresses</li>
-                <li><strong>Risk Score Calculator:</strong> Comprehensive threat assessment</li>
-            </ul>
-            <p><strong>Check out your email's security analysis below:</strong></p>
-        </section>
+        <!-- Scoring System -->
+        <div class="scoring-system">
+            <h3>🎯 Scoring System</h3>
+            <div class="score-breakdown">
+                <div class="score-item">
+                    <strong>Whitelist Check</strong><br>
+                    <small>20% weight</small>
+                </div>
+                <div class="score-item">
+                    <strong>Keyword Detection</strong><br>
+                    <small>15% weight</small>
+                </div>
+                <div class="score-item">
+                    <strong>Keyword Position</strong><br>
+                    <small>20% weight</small>
+                </div>
+                <div class="score-item">
+                    <strong>Edit Distance</strong><br>
+                    <small>20% weight</small>
+                </div>
+                <div class="score-item">
+                    <strong>URL Detection</strong><br>
+                    <small>25% weight</small>
+                </div>
+            </div>
+            <p><strong>Final Classification:</strong> 
+                &lt;50% = ✅ Not Phishing | 50-74% = ⚠️ Likely Phishing | ≥75% = 🚨 Definitely Phishing</p>
+        </div>
 
-        <!-- Whitelist Analysis Section -->
-        <section class="section analysis-section">
-            <h3 style="text-align: center;">Whitelist Analysis Results</h3>
-
-            <!-- Statistics -->
-            <div class="stats-box">
-                <strong>Summary:</strong> 
-                Processed {{ total_emails }} emails | 
-                {{ valid_emails|length }} Valid | 
-                {{ suspicious_emails|length }} Suspicious
+        <!-- Check if analysis_results exists -->
+        {% if analysis_results %}
+            <!-- Summary Statistics -->
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <div style="font-size: 24px; font-weight: bold; color: #007bff;">
+                        {{ analysis_results.summary_stats.total_emails }}
+                    </div>
+                    <div>Total Emails</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;">
+                        {{ analysis_results.summary_stats.safe_count }}
+                    </div>
+                    <div>✅ Safe</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size: 24px; font-weight: bold; color: #ffc107;">
+                        {{ analysis_results.summary_stats.suspicious_count }}
+                    </div>
+                    <div>⚠️ Suspicious</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size: 24px; font-weight: bold; color: #dc3545;">
+                        {{ analysis_results.summary_stats.phishing_count }}
+                    </div>
+                    <div>🚨 Phishing</div>
+                </div>
             </div>
 
-            <!-- Valid Emails Table -->
-            <h4>✅ Valid Emails (Whitelisted Domains)</h4>
-            {% if valid_emails %}
-            <table class="valid-table">
-                <tr>
-                    <th>Email Address</th>
-                    <th>Status</th>
-                    <th>Risk Score</th>
-                </tr>
-                {% for email in valid_emails %}
-                <tr>
-                    <td>{{ email.email }}</td>
-                    <td class="status-valid">{{ email.status }}</td>
-                    <td>{{ email.score }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p style="text-align: center; color: #666;">No valid emails found in the dataset.</p>
-            {% endif %}
-
-            <!-- Suspicious Emails Table -->
-            <h4>🚨 Suspicious Emails (Non-Whitelisted Domains)</h4>
-            {% if suspicious_emails %}
-            <table class="suspicious-table">
-                <tr>
-                    <th>Email Address</th>
-                    <th>Status</th>
-                    <th>Risk Score</th>
-                </tr>
-                {% for email in suspicious_emails %}
-                <tr>
-                    <td>{{ email.email }}</td>
-                    <td class="status-suspicious">{{ email.status }}</td>
-                    <td>{{ email.score }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p style="text-align: center; color: #666;">No suspicious emails detected.</p>
-            {% endif %}
-
-            <!-- Whitelist Configuration -->
-            <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <h4>ℹ️ Whitelist Configuration</h4>
-                <p><strong>Allowed Domains:</strong> 
-                    {% if whitelist_domains %}
-                        {{ whitelist_domains|join(', ') }}
-                    {% else %}
-                        None configured
-                    {% endif %}
-                </p>
-                <p><strong>Allowed TLDs:</strong> 
-                    {% if whitelist_tlds %}
-                        {{ whitelist_tlds|join(', ') }}
-                    {% else %}
-                        None configured
-                    {% endif %}
+            <!-- Average Scores -->
+            {% if analysis_results.summary_stats.avg_scores %}
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h4>📊 Average Scores</h4>
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <strong>Whitelist</strong><br>
+                        {{ analysis_results.summary_stats.avg_scores.whitelist }}%
+                    </div>
+                    <div class="score-item">
+                        <strong>Keyword Detect</strong><br>
+                        {{ analysis_results.summary_stats.avg_scores.keyword_detection }}%
+                    </div>
+                    <div class="score-item">
+                        <strong>Keyword Position</strong><br>
+                        {{ analysis_results.summary_stats.avg_scores.keyword_position }}%
+                    </div>
+                    <div class="score-item">
+                        <strong>Edit Distance</strong><br>
+                        {{ analysis_results.summary_stats.avg_scores.edit_distance }}%
+                    </div>
+                    <div class="score-item">
+                        <strong>URL Detect</strong><br>
+                        {{ analysis_results.summary_stats.avg_scores.url_detection }}%
+                    </div>
+                </div>
+                <p style="text-align: center; margin: 10px 0 0 0;">
+                    <strong>Average Final Score: {{ analysis_results.summary_stats.avg_final_score }}%</strong>
                 </p>
             </div>
-        </section>
-
-        <!-- Keyword Analysis Section -->
-        <section class="section analysis-section">
-            <h3 style="text-align: center;">Keyword Analysis Results</h3>
-            {% if analysis_results %}
-            <table class="keyword-table">
-                <tr>
-                    <th>Filename</th>
-                    <th>Subject</th>
-                    <th>Total Keywords Found</th>
-                    <th>Keywords Breakdown</th>
-                </tr>
-                {% for row in analysis_results %}
-                <tr>
-                    <td>{{ row.filename }}</td>
-                    <td>{{ row.subject }}</td>
-                    <td>{{ row.total }}</td>
-                    <td>{{ row.summary }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p style="text-align: center; color: #666;">No keyword analysis results available.</p>
             {% endif %}
-        </section>
 
-        <!-- News Section -->
-        <section class="section news-section">
-            <h3>📰 Technology News Updates</h3>
+            <!-- Detailed Results -->
+            <h3>📧 Top 10 Most Suspicious Emails</h3>
+            {% if analysis_results.detailed_results and analysis_results.detailed_results|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Subject</th>
+                        <th>Sender</th>
+                        <th>Score Breakdown</th>
+                        <th>Final Score</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for email in analysis_results.detailed_results %}
+                    <tr>
+                        <td><strong>{{ email.filename }}</strong></td>
+                        <td>{{ email.subject }}</td>
+                        <td><small>{{ email.sender }}</small></td>
+                        <td>
+                            <small>
+                                W:{{ email.scores.whitelist }}% |
+                                KD:{{ email.scores.keyword_detection }}% |
+                                KP:{{ email.scores.keyword_position }}% |
+                                ED:{{ email.scores.edit_distance }}% |
+                                UD:{{ email.scores.url_detection }}%
+                            </small>
+                            <div class="score-bar">
+                                {% set total = email.scores.whitelist + email.scores.keyword_detection + email.scores.keyword_position + email.scores.url_detection %}
+                                <div class="score-fill 
+                                    {% if total < 50 %}low-risk
+                                    {% elif total < 75 %}medium-risk
+                                    {% else %}high-risk{% endif %}" 
+                                    style="width: {{ total }}%">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ email.final_score }}%</strong>
+                        </td>
+                        <td>
+                            {% if email.risk_level == 'safe' %}
+                                <span class="safe">{{ email.status }}</span>
+                            {% elif email.risk_level == 'suspicious' %}
+                                <span class="suspicious">{{ email.status }}</span>
+                            {% elif email.risk_level == 'phishing' %}
+                                <span class="phishing">{{ email.status }}</span>
+                            {% else %}
+                                <span class="error">{{ email.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             
-            <div class="news-item">
-                <h4><a href="#" style="color: #0066cc; text-decoration: none;">AMD to unveil chip amid earnings woes</a></h4>
-                <p>Advanced Micro Devices will have good news for customers this week, but bad news for investors.</p>
-            </div>
-
-            <div class="news-item">
-                <h4><a href="#" style="color: #0066cc; text-decoration: none;">Rambus revenue up from year ago</a></h4>
-                <p>Rambus, a developer of technology that speeds the performance of computer-memory chips, on Thursday reported fiscal third-quarter earnings that rose from a year ago as revenue steadied.</p>
-            </div>
-
-            <div class="news-item">
-                <h4><a href="#" style="color: #0066cc; text-decoration: none;">Server company releases new AMD model</a></h4>
-                <p>Angstrom Microsystems, a small Boston company specializing in thin servers, has released a new model that squeezes two servers, each with two Advanced Micro Devices Athlon 2100+ processors, into a case that's 1.75-inches, or "1U," thick.</p>
-            </div>
-        </section>
-
-        <!-- Tips Section -->
-        <section class="section news-section">
-            <h3>💡 Tech Tip of the Week</h3>
-            <div class="news-item">
-                <h4><a href="#" style="color: #0066cc; text-decoration: none;">Tune-Up: The mother of all upgrades</a></h4>
-                <p>Looking to completely overhaul your PC? Start by replacing your motherboard for maximum performance gains.</p>
-            </div>
-        </section>
-
-        <!-- Special Feature Section -->
-        <section class="section news-section">
-            <h3>🚀 Special Feature</h3>
-            <div class="news-item">
-                <p>Did you know that ChannelOnline enables you to streamline your sales process by building quotes and orders online?</p>
-                <p>Simply select a customer you've previously entered into ChannelOnline's database and their company information, and a customized price profile is automatically applied to their quote. You can add products as you search the product database and work on multiple quotes at once as you respond to different customer requests throughout the day.</p>
-                <p>
-                    <a href="#" style="color: #0066cc; text-decoration: none;"><strong>Sign up now</strong></a> to streamline your entire buying and selling chain.
-                </p>
-                <p>
-                    <a href="#" style="color: #0066cc; text-decoration: none;"><strong>Tell me more about ChannelOnline.</strong></a>
+            <div style="text-align: center; margin: 20px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                <p style="margin: 0; color: #666;">
+                    Displaying top 10 of {{ analysis_results.all_results_count }} total emails analyzed
                 </p>
             </div>
-        </section>
+            {% else %}
+            <div class="no-data">
+                <p>No emails found in the dataset folder or no results to display.</p>
+                <p><small>Make sure your email files are in the 'datasets' folder.</small></p>
+            </div>
+            {% endif %}
 
-        <!-- Footer -->
-        <footer style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #ddd;">
-            <p>Sussy Checks The Sussers &copy; 2024 - Advanced Email Security Analysis</p>
-        </footer>
+        {% else %}
+        <!-- No analysis results available -->
+        <div class="no-data">
+            <h3>❌ No Analysis Results</h3>
+            <p>Unable to process email analysis. This could be due to:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>No dataset folder found</li>
+                <li>No email files in the dataset folder</li>
+                <li>Server processing error</li>
+            </ul>
+            <p><small>Check that your 'datasets' folder exists and contains email files.</small></p>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

@@ -4,7 +4,7 @@ import re
 from typing import List
 
 # Folder path where the files are stored
-folder_path = r'C:\Users\carol\Documents\Python\archive\spam_2\spam_2'
+folder_path = r'datasets'
 
 # Function to extract emails from a file
 def extract_emails_from_file(file_path: str) -> List[str]:
