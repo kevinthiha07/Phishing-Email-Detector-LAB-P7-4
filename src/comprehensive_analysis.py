@@ -83,8 +83,9 @@ def analyze_all_emails(dataset_folder="datasets"):
     # Sort by final score (descending)
     all_results.sort(key=lambda x: x['final_score'], reverse=True)
     
-    # Get top 10 for detailed view
+    # Get top 10 for detailed view AND all results for expansion
     detailed_results = all_results[:10]
+    all_emails_results = all_results  # All emails for expansion
     
     # Calculate summary statistics
     total_emails = len(all_results)
@@ -112,7 +113,8 @@ def analyze_all_emails(dataset_folder="datasets"):
     }
     
     return {
-        'detailed_results': detailed_results,
+        'detailed_results': detailed_results,  # Top 10
+        'all_emails_results': all_emails_results,  # All emails for expansion
         'summary_stats': summary_stats,
         'all_results_count': total_emails
     }
