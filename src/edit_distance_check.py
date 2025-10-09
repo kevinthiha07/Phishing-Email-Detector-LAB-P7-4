@@ -55,7 +55,7 @@ def check_edit_distance_with_risk_score(email_address: str) -> int:
     """Alias for edit_distance_score to maintain compatibility"""
     return edit_distance_score(email_address)
 
-# Standalone testing (only runs if file is executed directly)
+'''# Standalone testing (only runs if file is executed directly)
 if __name__ == "__main__":
     # Test the function with some examples
     test_emails = [
@@ -75,4 +75,4 @@ if __name__ == "__main__":
         domain = extract_domain(email)
         print(f"Email: {email}")
         print(f"Domain: {domain} -> Risk Score: {score}%")
-        print("-" * 40)
+        print("-" * 40)'''
