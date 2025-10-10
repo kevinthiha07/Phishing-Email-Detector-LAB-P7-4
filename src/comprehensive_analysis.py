@@ -48,7 +48,7 @@ def analyze_email_file(filepath, filename):
                 "whitelist": whitelist_sc,
                 "keyword_detection": keyword_detect_sc,
                 "keyword_position": keyword_pos_sc,
-                "edit_distance": edit_dist_sc,  # Fixed: was edit_distance_score
+                "edit_distance": edit_dist_sc,
                 "url_detection": url_detect_sc
             },
             "final_score": final_score,
@@ -85,7 +85,7 @@ def analyze_all_emails(dataset_folder="datasets"):
     
     # Get top 10 for detailed view AND all results for expansion
     detailed_results = all_results[:10]
-    all_emails_results = all_results  # All emails for expansion
+    all_emails_results = all_results
     
     # Calculate summary statistics
     total_emails = len(all_results)
@@ -113,8 +113,8 @@ def analyze_all_emails(dataset_folder="datasets"):
     }
     
     return {
-        'detailed_results': detailed_results,  # Top 10
-        'all_emails_results': all_emails_results,  # All emails for expansion
+        'detailed_results': detailed_results,
+        'all_emails_results': all_emails_results,
         'summary_stats': summary_stats,
         'all_results_count': total_emails
     }
