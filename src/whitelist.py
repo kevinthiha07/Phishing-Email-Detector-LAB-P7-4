@@ -55,13 +55,40 @@ def whitelist_score(email):
         return 20  # Suspicious domain - 20%
 
 def extract_email_from_content(content):
-    #extract email from each dataset by using regular expression
-    match = re.search(r'From:\s*[^<]*<([^>]+)>|From:\s*([^\s<]+@[^\s>]+)', content)
-    #return extracted email if found 
-    if match and (match.group(1) or match.group(2)):
-        return (match.group(1) or match.group(2)).strip()
-    else:
-        return None
+    """Extract sender email from email content with improved filtering"""
+    # Try multiple patterns in order of reliability
+    patterns = [
+        # Pattern 1: From field with angle brackets (most reliable)
+        r'From:\s*[^<]*<([^>]+@[^>]+)>',
+        # Pattern 2: From field with email directly
+        r'From:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+        # Pattern 3: Return-Path
+        r'Return-Path:\s*<([^>]+@[^>]+)>',
+        # Pattern 4: Reply-To
+        r'Reply-To:\s*[^<]*<([^>]+@[^>]+)>',
+        # Pattern 5: Sender
+        r'Sender:\s*[^<]*<([^>]+@[^>]+)>',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, content, re.IGNORECASE)
+        if match:
+            email = match.group(1).strip()
+            # Validate it's actually an email address
+            if re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                return email
+    
+    # Fallback: find all emails and take the first valid one that's not a message ID
+    all_emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', content)
+    for email in all_emails:
+        # Skip obvious message IDs and file paths
+        if (not re.search(r'[0-9a-f]{16,}', email) and  # Skip hex message IDs
+            not re.search(r'\\|/', email) and           # Skip paths with slashes
+            not email.startswith('0000') and            # Skip numeric IDs
+            len(email.split('@')[0]) > 3):              # Skip very short usernames
+            return email
+    
+    return None
 
 def load_emails_from_dataset(dataset_path):
     #check if dataset path exists
@@ -81,13 +108,8 @@ def load_emails_from_dataset(dataset_path):
             #read file content
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
                 content = file.read()
-                #extract email from dataset content
+                #extract email from dataset content using improved function
                 email = extract_email_from_content(content)
-                
-                #match email format
-                if not email:
-                    email_patterns = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', content)
-                    email = email_patterns[0] if email_patterns else None
                 
                 #add email to list
                 if email: 

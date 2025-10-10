@@ -20,24 +20,9 @@ def extract_domain_counts(dataset_folder="datasets"):
                 with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
                     
-                    # Extract email from From field
-                    email_patterns = [
-                        r'From:\s*[^<]*<([^>]+)>',
-                        r'From:\s*([^\s<]+@[^\s>]+)',
-                        r'Return-Path:\s*<([^>]+)>',
-                    ]
-                    
-                    email_found = None
-                    for pattern in email_patterns:
-                        match = re.search(pattern, content)
-                        if match:
-                            email_found = match.group(1).strip()
-                            break
-                    
-                    if not email_found:
-                        email_matches = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', content)
-                        if email_matches:
-                            email_found = email_matches[0]
+                    # Use the improved email extraction from whitelist.py
+                    from whitelist import extract_email_from_content
+                    email_found = extract_email_from_content(content)
                     
                     if email_found and '@' in email_found:
                         domain = email_found.split('@')[1].lower().strip()
