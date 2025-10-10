@@ -87,7 +87,8 @@ def build_dynamic_known_domains(dataset_folder="datasets", min_frequency=2):
         
         # Add domains that you know are legitimate from your dataset , researched online
         # Add on more legit domains from dataset , if you know
-        "rediff.com","ida.org","mx2.mail.yahoo.com","freemail.ru","msg.com","go.com"
+        "rediff.com","ida.org","mx2.mail.yahoo.com","freemail.ru","msg.com","go.com","ebay.com","grenet.fr","cwie.net", "tfn.net","linux.org","263.net",
+        "web.com","napster.com","cutey.com","patra.com","hotp.com","yahoo.lv","ba.no","",
     ]
     
     # Trust domains based on frequency (appear multiple times in your dataset)
