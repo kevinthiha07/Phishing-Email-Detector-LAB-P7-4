@@ -126,6 +126,7 @@ def calculate_edit_distance(str1: str, str2: str) -> int:
     """
     return Levenshtein.distance(str1, str2)
 
+
 def is_domain_high_risk_similar(domain: str, known_domains: list) -> bool:
     """
     Check if domain is a high-risk similarity to known domains
@@ -155,17 +156,16 @@ def is_domain_high_risk_similar(domain: str, known_domains: list) -> bool:
         distance = calculate_edit_distance(domain_name, known_name)
         
         # Only consider it similar if it's a clear typosquat with same/similar TLD
-        if (distance <= 2 and 
+        if (distance <= 1 and 
             (domain_tld == known_tld or 
              (domain_tld in ['com', 'net'] and known_tld in ['com', 'net']))):
             return True
     
     return False
-
 def edit_distance_score(email_address: str) -> int:
     """
     Calculate phishing risk score based on domain similarity to known domains
-    Only runs for obvious typosquatting attempts
+    Only runs for obvious typosquatting attempts (distance = 1 only)
     """
     if not email_address or '@' not in email_address:
         return 0
@@ -193,15 +193,11 @@ def edit_distance_score(email_address: str) -> int:
             min_distance = distance
             closest_domain = known_domain
     
-    # Apply scoring rules - only for high-risk similarities
-    if min_distance == 0:
-        return 0    # Exact match - completely safe
-    elif min_distance == 1:
+    # Apply scoring rules - ONLY for distance = 1 (most obvious typosquatting)
+    if min_distance == 1:
         return 20   # Very similar domain - high risk
-    elif min_distance <= 2:
-        return 10   # Somewhat similar domain - medium risk
     else:
-        return 0    # Not similar enough to be suspicious
+        return 0    # Ignore distance 2+ (reduces false positives)
 
 def check_edit_distance_with_risk_score(email_address: str) -> int:
     """
@@ -212,6 +208,9 @@ def check_edit_distance_with_risk_score(email_address: str) -> int:
 # Initialize dynamic known domains when module loads
 KNOWN_DOMAINS = build_dynamic_known_domains()
 
+
+#this is a debugging function, for show_phishing.py
+#show_phishing.py will show only phishing emails and show how did it do the edit distance comparison
 def get_edit_distance_details(email_address: str) -> dict:
     """
     Get detailed edit distance information including which domain was compared
