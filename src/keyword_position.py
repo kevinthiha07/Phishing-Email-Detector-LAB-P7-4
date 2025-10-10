@@ -22,7 +22,6 @@ def keyword_position_score(subject, body):
         if keyword in body_lower[200:]:
             score += 1
     
-    # Convert to final score
     if score <= 5:
         return 5
     elif 6 <= score <= 15:
