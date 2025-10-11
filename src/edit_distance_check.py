@@ -3,6 +3,16 @@ import re
 import os
 from collections import Counter
 
+def extract_domain(email: str) -> str:
+    """
+    Extract domain from an email address
+    """
+    if not email or "@" not in email:
+        return ""
+    
+    match = re.search(r'@([a-zA-Z0-9.-]+)', email)
+    return match.group(1).lower() if match else ""
+
 def extract_domain_counts(dataset_folder="datasets"):
     """
     Extract domains and their counts from dataset
@@ -39,9 +49,10 @@ def extract_domain_counts(dataset_folder="datasets"):
                         if email_matches:
                             email_found = email_matches[0]
                     
-                    if email_found and '@' in email_found:
-                        domain = email_found.split('@')[1].lower().strip()
-                        if re.match(r'^[a-z0-9.-]+\.[a-z]{2,}$', domain):
+                    # Use the extract_domain function instead of duplicate logic
+                    if email_found:
+                        domain = extract_domain(email_found)
+                        if domain and re.match(r'^[a-z0-9.-]+\.[a-z]{2,}$', domain):
                             domains.append(domain)
                             
             except Exception:
@@ -110,22 +121,11 @@ def build_dynamic_known_domains(dataset_folder="datasets", min_frequency=2):
     
     return all_known_domains
 
-def extract_domain(email: str) -> str:
-    """
-    Extract domain from an email address
-    """
-    if not email or "@" not in email:
-        return ""
-    
-    match = re.search(r'@([a-zA-Z0-9.-]+)', email)
-    return match.group(1).lower() if match else ""
-
 def calculate_edit_distance(str1: str, str2: str) -> int:
     """
     Calculate Levenshtein Edit Distance between two strings
     """
     return Levenshtein.distance(str1, str2)
-
 
 def is_domain_high_risk_similar(domain: str, known_domains: list) -> bool:
     """
@@ -162,6 +162,7 @@ def is_domain_high_risk_similar(domain: str, known_domains: list) -> bool:
             return True
     
     return False
+
 def edit_distance_score(email_address: str) -> int:
     """
     Calculate phishing risk score based on domain similarity to known domains
@@ -207,7 +208,6 @@ def check_edit_distance_with_risk_score(email_address: str) -> int:
 
 # Initialize dynamic known domains when module loads
 KNOWN_DOMAINS = build_dynamic_known_domains()
-
 
 #this is a debugging function, for show_phishing.py
 #show_phishing.py will show only phishing emails and show how did it do the edit distance comparison

@@ -27,6 +27,7 @@ SAFE_DOMAINS = [# Major Email Providers
         # Add on more legit domains from dataset , if you know
         "rediff.com","ida.org","mx2.mail.yahoo.com","freemail.ru","msg.com","go.com","ebay.com","grenet.fr","cwie.net", "tfn.net","linux.org","263.net",
         "web.com","napster.com","cutey.com","patra.com","hotp.com","yahoo.lv","ba.no",]
+
 SUSPICIOUS_TLDS = ['.xyz', '.top', '.club', '.click', '.link', '.online', '.tk', '.ml', '.ga', '.cf']
 
 def extract_urls(text):
