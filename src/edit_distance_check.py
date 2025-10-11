@@ -185,14 +185,12 @@ def edit_distance_score(email_address: str) -> int:
     
     # Run full edit distance analysis only for high-risk domains
     min_distance = float('inf')
-    closest_domain = ""
     
-    # Find the closest known domain
+    # Find the minimum distance to any known domain
     for known_domain in KNOWN_DOMAINS:
         distance = calculate_edit_distance(domain, known_domain)
         if distance < min_distance:
             min_distance = distance
-            closest_domain = known_domain
     
     # Apply scoring rules - ONLY for distance = 1 (most obvious typosquatting)
     if min_distance == 1:
