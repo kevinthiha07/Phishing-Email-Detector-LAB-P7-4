@@ -14,7 +14,7 @@ def is_valid_domain_format(domain):
         return False
     
     #split domain into parts
-    #check if domain and top level domain is empty, have at least 2 parts(domain,tld) and whether tld have at least 2 char
+   # Verify domain has valid structure (domain.tld)
     parts = domain.split('.')
     return len(parts) >= 2 and all(parts) and len(parts[-1]) >= 2
 
@@ -161,3 +161,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
