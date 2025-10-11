@@ -1,4 +1,6 @@
-SUSPICIOUS_KEYWORDS = ["urgent", "verify", "account", "password", "click", "login", "bank", "update", "confirm"]
+SUSPICIOUS_KEYWORDS = ["urgent", "verify", "account", "password", "click", "login", "bank", "update", "confirm", "spam", "free",
+                       "now", "increase", "legal", "congratulations", "your", "asap", "help", "money", "chance", "offer", "fast","$",
+                       "debt", "not spam"]
 
 def keyword_position_score(subject, body):
     """Score based on keyword positions - 20% weight"""
