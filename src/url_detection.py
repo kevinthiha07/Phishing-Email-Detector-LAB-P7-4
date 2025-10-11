@@ -1,7 +1,32 @@
 import re
 from urllib.parse import urlparse
 
-SAFE_DOMAINS = ["microsoft.com", "google.com", "apple.com", "amazon.com", "paypal.com", "linkedin.com"]
+SAFE_DOMAINS = [# Major Email Providers
+        "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "aol.com",
+        "icloud.com", "protonmail.com", "zoho.com", "mail.com", "msn.com",
+        
+        # Tech Companies
+        "microsoft.com", "google.com", "apple.com", "amazon.com", 
+        "facebook.com", "linkedin.com", "twitter.com", "instagram.com",
+        "whatsapp.com", "telegram.org",
+        
+        # Financial Institutions
+        "paypal.com", "visa.com", "mastercard.com", "americanexpress.com",
+        "wellsfargo.com", "bankofamerica.com", "chase.com", "citibank.com",
+        
+        # Other High-Value Targets
+        "netflix.com", "dropbox.com", "adobe.com", "salesforce.com",
+        "spotify.com", "zoom.us", "skype.com",
+        
+        # Common legitimate domains from various countries
+        "yahoo.co.uk", "yahoo.de", "yahoo.fr", "yahoo.jp",
+        "web.de", "gmx.de", "gmx.net", "t-online.de",
+        "naver.com", "daum.net", "qq.com", "163.com",
+        
+        # Add domains that you know are legitimate from your dataset , researched online
+        # Add on more legit domains from dataset , if you know
+        "rediff.com","ida.org","mx2.mail.yahoo.com","freemail.ru","msg.com","go.com","ebay.com","grenet.fr","cwie.net", "tfn.net","linux.org","263.net",
+        "web.com","napster.com","cutey.com","patra.com","hotp.com","yahoo.lv","ba.no",]
 SUSPICIOUS_TLDS = ['.xyz', '.top', '.club', '.click', '.link', '.online', '.tk', '.ml', '.ga', '.cf']
 
 def extract_urls(text):

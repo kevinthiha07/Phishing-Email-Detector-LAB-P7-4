@@ -41,8 +41,10 @@ def is_domain_whitelisted(email, domains, tlds):
 def load_whitelist():
     #whitelisted domains and top level domain
     return (
-        {"gmail", "yahoo", "outlook", "hotmail", "mail"}, 
-        {"com", "org", "net", "edu", "gov", "co"}          
+        "netflix.com", "dropbox.com", "adobe.com", "salesforce.com",
+        "spotify.com", "zoom.us", "skype.com",
+        {"microsoft","google","apple","amazon","paypal","linkedin","gmail", "yahoo", "outlook", "hotmail", "mail","aol","icloud","protonmail","zoho","msn","facebook","twitter","instagram","whatsapp","telegram","visa","mastercard","americanexpress","wellsfargo","bankofamerica","chase","citibank","netflix","dropbox","adobe","salesforce","spotify","zoom","skype","web","gmx","t-online","naver","daum","qq","163","rediff","ida","freemail","msg","gp","ebay","grenet","cwie","tfn","linux","263","napster","cutey","patra","hotp","ba"}, 
+        {"com", "org", "net", "edu", "gov", "co","de","ru","lv","no",".fr"}          
     )
 
 #connect to main_rules.py
