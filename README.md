@@ -6,7 +6,7 @@ pip install python-levenshtein
 pip install flask
 
 # Then run project:
-python main_rules.py
+python main.py
 
 # Thiha Thein Kevin 2502266
 # Hermann Phua 2501300
