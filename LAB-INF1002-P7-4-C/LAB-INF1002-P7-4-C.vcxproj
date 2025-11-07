@@ -19,13 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="delete.c" />
-    <ClCompile Include="insert.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="open_save.c" />
-    <ClCompile Include="query.c" />
-    <ClCompile Include="sorting_summary.c" />
-    <ClCompile Include="update.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Team_P7_4-CMS.txt" />

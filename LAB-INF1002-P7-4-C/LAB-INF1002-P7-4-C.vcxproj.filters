@@ -18,24 +18,6 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="delete.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="insert.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="open_save.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="query.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sorting_summary.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="update.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Team_P7_4-CMS.txt">
