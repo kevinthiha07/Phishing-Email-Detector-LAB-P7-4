@@ -1,7 +1,29 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 
 int main() {
-    printf("Starting program...\n");
-    printf("This is a simple C program.\n");
+    FILE* file;
+    char line[200];
+    int id;
+    char name[100];
+    char programme[100];
+    float marks;
+
+    file = fopen("Team_P7_4-CMS.txt", "r");
+    if (file == NULL) {
+        printf("Error: Cannot open Data File\n");
+        return 1;
+    }
+
+    printf("\nStudent Data:\n");
+    printf("ID\t\tName\t\tProgramme\t\tMarks\n");
+    printf("------------------------------------------------------------\n");
+
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        printf("%s", line); 
+    }
+
+    fclose(file);
     return 0;
 }
