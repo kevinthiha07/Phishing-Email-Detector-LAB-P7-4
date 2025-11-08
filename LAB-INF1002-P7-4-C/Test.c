@@ -2,18 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 
+int checkDuplicateID(int newID);
+void insertRecord();
+void viewRecords();
+
 int main() {
-    FILE* file;
-    char line[200];
-    int id;
-    char name[100];
-    char programme[100];
-    float marks;
-    char command[50];
     int searchId, found;
     int choice;
+    char line[200];
 
-    // Display declaration at startup
     printf("Declaration\n");
     printf("SIT's policy on copying does not allow the students to copy source code as well as assessment solutions\n");
     printf("from another person AI or other places. It is the students' responsibility to guarantee that their\n");
@@ -53,51 +50,42 @@ int main() {
         printf("6. Exit\n\n");
 
         printf("Enter your choice (1-6): ");
-        scanf("%d", &choice);
+        if (scanf("%d", &choice) != 1) {
+            printf("CMS: Invalid input. Please enter a number.\n");
+            while (getchar() != '\n');
+            continue;
+        }
 
         switch (choice) {
         case 1: // Show All
-            file = fopen("Team_P7_4-CMS.txt", "r");
-            if (file == NULL) {
-                printf("CMS: Error: Cannot open database file\n");
-                break;
-            }
-
-            printf("\nStudent Data:\n");
-            printf("ID\t\tName\t\tProgramme\t\tMarks\n");
-            printf("------------------------------------------------------------\n");
-
-            while (fgets(line, sizeof(line), file) != NULL) {
-                printf("%s", line);
-            }
-            fclose(file);
+            viewRecords();
             break;
 
         case 2: // Insert
-            printf("CMS: Insert function - To be implemented\n");
+            insertRecord();
             break;
 
         case 3: // Query
             printf("Enter student ID to search: ");
-            scanf("%d", &searchId);
+            if (scanf("%d", &searchId) != 1) {
+                printf("CMS: Invalid ID format.\n");
+                while (getchar() != '\n');
+                break;
+            }
 
-            file = fopen("Team_P7_4-CMS.txt", "r");
+            FILE* file = fopen("Team_P7_4-CMS.txt", "r");
             if (file == NULL) {
                 printf("CMS: Error: Cannot open database file\n");
                 break;
             }
 
             found = 0;
-            // Skip header line if exists
-            fgets(line, sizeof(line), file);
-
             while (fgets(line, sizeof(line), file) != NULL) {
-                // Parse each line to check if ID matches
                 int currentId;
                 char currentName[100], currentProgramme[100];
                 float currentMarks;
 
-                if (sscanf(line, "%d %99[^\t] %99[^\t] %f",
+                if (sscanf(line, "%d,%99[^,],%99[^,],%f",
                     &currentId, currentName, currentProgramme, &currentMarks) == 4) {
                     if (currentId == searchId) {
                         printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
@@ -131,11 +119,104 @@ int main() {
 
         default:
             printf("CMS: Invalid choice. Please enter a number between 1-6.\n");
-            // Clear input buffer
-            while (getchar() != '\n');
             break;
         }
     }
 
     return 0;
+}
+
+void viewRecords() {
+    FILE* file = fopen("Team_P7_4-CMS.txt", "r");
+    if (file == NULL) {
+        printf("CMS: Error: Cannot open database file\n");
+        return;
+    }
+
+    printf("\nCMS: Here are all the records found in the table \"StudentRecords\".\n");
+    printf("ID\t\tName\t\tProgramme\t\tMarks\n");
+    printf("------------------------------------------------------------\n");
+
+    char line[200];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        printf("%s", line);
+    }
+
+    fclose(file);
+}
+
+int checkDuplicateID(int newID) {
+    FILE* file = fopen("Team_P7_4-CMS.txt", "r");
+    if (file == NULL) {
+        return 0; 
+    }
+
+    char line[200];
+    int existingID;
+    char tempName[100], tempProgramme[100];
+    float tempMarks;
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (sscanf(line, "%d,%99[^,],%99[^,],%f", &existingID, tempName, tempProgramme, &tempMarks) >= 1) {
+            if (existingID == newID) {
+                fclose(file);
+				return 1; // duplicated ID found
+            }
+        }
+    }
+
+    fclose(file);
+	return 0; // no duplicate ID 
+}
+
+void insertRecord() {
+    int newID;
+    char name[100];
+    char programme[100];
+    float marks;
+    char input[500];
+
+    printf("\n--- Insert New Student Record ---\n");
+    printf("Enter Student Data: ");
+
+    while (getchar() != '\n');
+
+    // reads the entire input line
+    if (fgets(input, sizeof(input), stdin) == NULL) {
+        printf("CMS: Error reading input!\n");
+        return;
+    }
+
+    input[strcspn(input, "\n")] = 0;
+
+
+    // parsing inputs of fields with quotation marks
+    if (sscanf(input, "ID=\"%d\", Name=\"%99[^\"]\", Programme=\"%99[^\"]\", Marks=\"%f\"",
+        &newID, name, programme, &marks) != 4) {
+        printf("CMS: Error: Invalid input format!\n");
+        printf("CMS: Expected: ID=\"number\", Name=\"name\", Programme=\"programme\", Marks=\"marks\"\n");
+        return;
+    }
+    
+	// checking if the ID exists already
+    if (checkDuplicateID(newID)) {
+        printf("CMS: Error: Student with ID %d already exists! Insertion cancelled.\n", newID);
+        return;
+    }
+
+	// opening file to append new record
+    FILE* file = fopen("Team_P7_4-CMS.txt", "a");
+    if (file == NULL) {
+        printf("CMS: Error: Cannot open database file for writing\n");
+        return;
+    }
+
+    // write new record to file
+    fprintf(file, "%d,%s,%s,%.1f\n", newID, name, programme, marks);
+    fclose(file);
+
+    printf("CMS: A new record with ID=%d was successfully inserted.\n", newID);
+
+	// show all records after insertion
+    viewRecords();
 }
