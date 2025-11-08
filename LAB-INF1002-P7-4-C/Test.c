@@ -36,7 +36,7 @@ int main() {
     printf("4. Glenda Teo\n");
     printf("5. Oh Rui Cheng\n\n");
 
-    printf("Date: 25 November 2024\n\n");
+    printf("Date: 25 November 2025\n\n");
 
     printf("=== Class Management System (CMS) ===\n");
 
@@ -67,32 +67,32 @@ int main() {
 
         case 3: // Query
             printf("Enter student ID to search: ");
-            if (scanf("%d", &searchId) != 1) {
-                printf("CMS: Invalid ID format.\n");
-                while (getchar() != '\n');
-                break;
+            if (scanf("%d", &searchId) != 1) {  // read and check the student id input
+                printf("CMS: Invalid ID format.\n");  // display error message when fail to read an int
+                while (getchar() != '\n'); // clear input buffer to remove any remaining invalid characters
+                break; // exit since we have invalid input
             }
 
-            FILE* file = fopen("Team_P7_4-CMS.txt", "r");
-            if (file == NULL) {
+            FILE* file = fopen("Team_P7_4-CMS.txt", "r"); // open database file in read mode
+			if (file == NULL) { // checlk if file is opened successfully
                 printf("CMS: Error: Cannot open database file\n");
                 break;
             }
 
-            found = 0;
-            while (fgets(line, sizeof(line), file) != NULL) {
+			found = 0; // initialize flag to track if student record is found
+			while (fgets(line, sizeof(line), file) != NULL) { // read each line from the file
                 int currentId;
                 char currentName[100], currentProgramme[100];
                 float currentMarks;
 
-                if (sscanf(line, "%d,%99[^,],%99[^,],%f",
+				if (sscanf(line, "%d,%99[^,],%99[^,],%f", // parse the line to extract student details
                     &currentId, currentName, currentProgramme, &currentMarks) == 4) {
                     if (currentId == searchId) {
                         printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
                         printf("ID\t\tName\t\tProgramme\t\tMark\n");
                         printf("------------------------------------------------------------\n");
                         printf("%d\t\t%s\t\t%s\t\t%.1f\n", currentId, currentName, currentProgramme, currentMarks);
-                        found = 1;
+                        found = 1; // set found flag to indicate successful search 
                         break;
                     }
                 }
