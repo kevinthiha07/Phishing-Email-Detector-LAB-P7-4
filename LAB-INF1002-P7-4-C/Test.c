@@ -9,8 +9,9 @@ int main() {
     char name[100];
     char programme[100];
     float marks;
-    char command[50]; //query
-    int searchId, found; //query
+    char command[50];
+    int searchId, found;
+    int choice;
 
     // Display declaration at startup
     printf("Declaration\n");
@@ -41,94 +42,98 @@ int main() {
     printf("Date: 25 November 2024\n\n");
 
     printf("=== Class Management System (CMS) ===\n");
-    printf("Available commands: OPEN, SHOW ALL, QUERY, EXIT\n\n");
 
     while (1) {
-        printf("P7_4: ");
-        scanf("%s", command);
+        printf("\nStudent Management System\n");
+        printf("1. Show All\n");
+        printf("2. Insert\n");
+        printf("3. Query\n");
+        printf("4. Update\n");
+        printf("5. Delete\n");
+        printf("6. Exit\n\n");
 
-        if (strcmp(command, "OPEN") == 0) {
+        printf("Enter your choice (1-6): ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1: // Show All
             file = fopen("Team_P7_4-CMS.txt", "r");
             if (file == NULL) {
                 printf("CMS: Error: Cannot open database file\n");
-                continue;
+                break;
             }
-            printf("CMS: The database file \"Team_P7_4-CMS.txt\" is successfully opened.\n");
+
+            printf("\nStudent Data:\n");
+            printf("ID\t\tName\t\tProgramme\t\tMarks\n");
+            printf("------------------------------------------------------------\n");
+
+            while (fgets(line, sizeof(line), file) != NULL) {
+                printf("%s", line);
+            }
             fclose(file);
-        }
-        else if (strcmp(command, "SHOW") == 0) {
-            char next[10];
-            scanf("%s", next);
-            if (strcmp(next, "ALL") == 0) {
-                file = fopen("Team_P7_4-CMS.txt", "r");
-                if (file == NULL) {
-                    printf("CMS: Error: Cannot open database file\n");
-                    continue;
-                }
+            break;
 
-                printf("CMS: Here are all the records found in the table \"StudentRecords\".\n");
-                printf("ID\t\tName\t\tProgramme\t\tMark\n");
-                printf("------------------------------------------------------------\n");
+        case 2: // Insert
+            printf("CMS: Insert function - To be implemented\n");
+            break;
 
-                while (fgets(line, sizeof(line), file) != NULL) {
-                    printf("%s", line);
-                }
-                fclose(file);
+        case 3: // Query
+            printf("Enter student ID to search: ");
+            scanf("%d", &searchId);
+
+            file = fopen("Team_P7_4-CMS.txt", "r");
+            if (file == NULL) {
+                printf("CMS: Error: Cannot open database file\n");
+                break;
             }
-        }
-        else if (strcmp(command, "QUERY") == 0) {
-            char idStr[20];
-            scanf("%s", idStr);
 
-            // Extract ID from "ID=2301234" format
-            if (sscanf(idStr, "ID=%d", &searchId) == 1) {
-                file = fopen("Team_P7_4-CMS.txt", "r");
-                if (file == NULL) {
-                    printf("CMS: Error: Cannot open database file\n");
-                    continue;
-                }
+            found = 0;
+            // Skip header line if exists
+            fgets(line, sizeof(line), file);
 
-                found = 0;
-                // Skip header line if exists
-                fgets(line, sizeof(line), file);
+            while (fgets(line, sizeof(line), file) != NULL) {
+                // Parse each line to check if ID matches
+                int currentId;
+                char currentName[100], currentProgramme[100];
+                float currentMarks;
 
-                while (fgets(line, sizeof(line), file) != NULL) {
-                    // Parse each line to check if ID matches
-                    int currentId;
-                    char currentName[100], currentProgramme[100];
-                    float currentMarks;
-
-                    if (sscanf(line, "%d %99[^\t] %99[^\t] %f",
-                        &currentId, currentName, currentProgramme, &currentMarks) == 4) {
-                        if (currentId == searchId) {
-                            printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
-                            printf("ID\t\tName\t\tProgramme\t\tMark\n");
-                            printf("------------------------------------------------------------\n");
-                            printf("%d\t\t%s\t\t%s\t\t%.1f\n", currentId, currentName, currentProgramme, currentMarks);
-                            found = 1;
-                            break;
-                        }
+                if (sscanf(line, "%d %99[^\t] %99[^\t] %f",
+                    &currentId, currentName, currentProgramme, &currentMarks) == 4) {
+                    if (currentId == searchId) {
+                        printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
+                        printf("ID\t\tName\t\tProgramme\t\tMark\n");
+                        printf("------------------------------------------------------------\n");
+                        printf("%d\t\t%s\t\t%s\t\t%.1f\n", currentId, currentName, currentProgramme, currentMarks);
+                        found = 1;
+                        break;
                     }
                 }
-
-                if (!found) {
-                    printf("CMS: The record with ID=%d does not exist.\n", searchId);
-                }
-
-                fclose(file);
             }
-            else {
-                printf("CMS: Invalid query format. Use: QUERY ID=2301234\n");
+
+            if (!found) {
+                printf("CMS: The record with ID=%d does not exist.\n", searchId);
             }
-        }
-        else if (strcmp(command, "EXIT") == 0) {
-            printf("CMS: Goodbye!\n");
+
+            fclose(file);
             break;
-        }
-        else {
-            printf("CMS: Unknown command. Available commands: OPEN, SHOW ALL, QUERY, EXIT\n");
-            // Clear any remaining input
+
+        case 4: // Update
+            printf("CMS: Update function - To be implemented\n");
+            break;
+
+        case 5: // Delete
+            printf("CMS: Delete function - To be implemented\n");
+            break;
+
+        case 6: // Exit
+            printf("CMS: Goodbye!\n");
+            return 0;
+
+        default:
+            printf("CMS: Invalid choice. Please enter a number between 1-6.\n");
+            // Clear input buffer
             while (getchar() != '\n');
+            break;
         }
     }
 
