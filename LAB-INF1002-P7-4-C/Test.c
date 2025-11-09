@@ -5,6 +5,7 @@
 int checkDuplicateID(int newID);
 void insertRecord();
 void viewRecords();
+void searchQuery();
 
 int main() {
     int searchId, found;
@@ -66,43 +67,7 @@ int main() {
             break;
 
         case 3: // Query
-            printf("Enter student ID to search: ");
-            if (scanf("%d", &searchId) != 1) {  // read and check the student id input
-                printf("CMS: Invalid ID format.\n");  // display error message when fail to read an int
-                while (getchar() != '\n'); // clear input buffer to remove any remaining invalid characters
-                break; // exit since we have invalid input
-            }
-
-            FILE* file = fopen("Team_P7_4-CMS.txt", "r"); // open database file in read mode
-			if (file == NULL) { // checlk if file is opened successfully
-                printf("CMS: Error: Cannot open database file\n");
-                break;
-            }
-
-			found = 0; // initialize flag to track if student record is found
-			while (fgets(line, sizeof(line), file) != NULL) { // read each line from the file
-                int currentId;
-                char currentName[100], currentProgramme[100];
-                float currentMarks;
-
-				if (sscanf(line, "%d,%99[^,],%99[^,],%f", // parse the line to extract student details
-                    &currentId, currentName, currentProgramme, &currentMarks) == 4) {
-                    if (currentId == searchId) {
-                        printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
-                        printf("ID\t\tName\t\tProgramme\t\tMark\n");
-                        printf("------------------------------------------------------------\n");
-                        printf("%d\t\t%s\t\t%s\t\t%.1f\n", currentId, currentName, currentProgramme, currentMarks);
-                        found = 1; // set found flag to indicate successful search 
-                        break;
-                    }
-                }
-            }
-
-            if (!found) {
-                printf("CMS: The record with ID=%d does not exist.\n", searchId);
-            }
-
-            fclose(file);
+            searchQuery();
             break;
 
         case 4: // Update
@@ -197,14 +162,14 @@ void insertRecord() {
         printf("CMS: Expected: ID=\"number\", Name=\"name\", Programme=\"programme\", Marks=\"marks\"\n");
         return;
     }
-    
-	// checking if the ID exists already
+
+    // checking if the ID exists already
     if (checkDuplicateID(newID)) {
         printf("CMS: Error: Student with ID %d already exists! Insertion cancelled.\n", newID);
         return;
     }
 
-	// opening file to append new record
+    // opening file to append new record
     FILE* file = fopen("Team_P7_4-CMS.txt", "a");
     if (file == NULL) {
         printf("CMS: Error: Cannot open database file for writing\n");
@@ -217,6 +182,50 @@ void insertRecord() {
 
     printf("CMS: A new record with ID=%d was successfully inserted.\n", newID);
 
-	// show all records after insertion
+    // show all records after insertion
     viewRecords();
+}
+
+void searchQuery() {
+    int searchId;
+
+    printf("Enter student ID to search: ");
+    if (scanf("%d", &searchId) != 1) {  // read and check the student id input
+        printf("CMS: Invalid ID format.\n");  // display error message when fail to read an int
+        while (getchar() != '\n'); // clear input buffer to remove any remaining invalid characters
+        return; // exit since we have invalid input
+    }
+
+    FILE* file = fopen("Team_P7_4-CMS.txt", "r"); // open database file in read mode
+    if (file == NULL) { // check if file is opened successfully
+        printf("CMS: Error: Cannot open database file\n");
+        return;
+    }
+
+    char line[200];
+    int found = 0; // initialize flag to track if student record is found
+
+    while (fgets(line, sizeof(line), file) != NULL) { // read each line from the file
+        int currentId;
+        char currentName[100], currentProgramme[100];
+        float currentMarks;
+
+        if (sscanf(line, "%d,%99[^,],%99[^,],%f", // parse the line to extract student details
+            &currentId, currentName, currentProgramme, &currentMarks) == 4) {
+            if (currentId == searchId) {
+                printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
+                printf("ID\t\tName\t\tProgramme\t\tMark\n");
+                printf("------------------------------------------------------------\n");
+                printf("%d\t\t%s\t\t%s\t\t%.1f\n", currentId, currentName, currentProgramme, currentMarks);
+                found = 1; // set found flag to indicate successful search 
+                break;
+            }
+        }
+    }
+
+    if (!found) {
+        printf("CMS: The record with ID=%d does not exist.\n", searchId);
+    }
+
+    fclose(file);
 }

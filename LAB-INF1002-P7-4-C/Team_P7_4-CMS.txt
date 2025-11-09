@@ -2,3 +2,4 @@ ID (data type: integer),Name (String),Programme (String), Marks (data type: floa
 2301234,Joshua Chen,Software Engineering, 70.5
 2201234,Isaac Teo,Computer Science,63.4
 2304567,John Levoy,Digital Supply Chain,89.9
+2501234,Sabby Lee,Information Security,80.0
