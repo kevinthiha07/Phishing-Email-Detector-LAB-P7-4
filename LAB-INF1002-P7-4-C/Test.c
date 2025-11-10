@@ -6,6 +6,7 @@ int checkDuplicateID(int newID);
 void insertRecord();
 void viewRecords();
 void searchQuery();
+void updateRecord(); // Prototype for the update function
 
 int main() {
     int searchId, found;
@@ -71,7 +72,7 @@ int main() {
             break;
 
         case 4: // Update
-            printf("CMS: Update function - To be implemented\n");
+            updateRecord();
             break;
 
         case 5: // Delete
@@ -113,7 +114,7 @@ void viewRecords() {
 int checkDuplicateID(int newID) {
     FILE* file = fopen("Team_P7_4-CMS.txt", "r");
     if (file == NULL) {
-        return 0; 
+        return 0;
     }
 
     char line[200];
@@ -125,13 +126,13 @@ int checkDuplicateID(int newID) {
         if (sscanf(line, "%d,%99[^,],%99[^,],%f", &existingID, tempName, tempProgramme, &tempMarks) >= 1) {
             if (existingID == newID) {
                 fclose(file);
-				return 1; // duplicated ID found
+                return 1; // duplicated ID found
             }
         }
     }
 
     fclose(file);
-	return 0; // no duplicate ID 
+    return 0; // no duplicate ID 
 }
 
 void insertRecord() {
@@ -228,4 +229,181 @@ void searchQuery() {
     }
 
     fclose(file);
+}
+
+// Function to update a record
+void updateRecord() {
+    int updateId, currentId;
+    char name[100], programme[100];
+    float marks;
+    // Add variables to store original data
+    char originalName[100], originalProgramme[100];
+    float originalMarks;
+    char line[200];
+    int found = 0;
+
+    /* // --- These variables were moved for C89 compatibility in the *other* version ---
+    char confirmation;
+    char marksInput[50];
+    */
+
+    // Open the original file for reading and a temp file for writing
+    FILE* file_in = fopen("Team_P7_4-CMS.txt", "r");
+    FILE* file_out = fopen("temp.txt", "w");
+
+    if (file_in == NULL || file_out == NULL) {
+        printf("CMS: Error: Cannot open database file(s).\n");
+        if (file_in) fclose(file_in);
+        if (file_out) fclose(file_out);
+        return;
+    }
+
+    printf("Enter student ID to update: ");
+    if (scanf("%d", &updateId) != 1) {
+        printf("CMS: Invalid ID format.\n");
+        while (getchar() != '\n'); // clear buffer
+        fclose(file_in);
+        fclose(file_out);
+        remove("temp.txt"); // clean up temp file
+        return;
+    }
+    while (getchar() != '\n'); // clear buffer after successful scanf
+
+    // Read from original, write to temp
+    while (fgets(line, sizeof(line), file_in) != NULL) {
+        // Try to parse the ID and data from the current line
+        // We use == 4 to ensure we're only checking valid data lines
+        if (sscanf(line, "%d,%99[^,],%99[^,],%f", &currentId, originalName, originalProgramme, &originalMarks) == 4) {
+
+            if (currentId == updateId) {
+                found = 1;
+
+                // --- 'confirmation' declared here (C99-style) ---
+                char confirmation;
+
+                // Record found, get new data from user
+                printf("Record found. Enter new data for ID %d (or type 'cancel' to exit at any prompt):\n", updateId);
+
+                printf("Enter new Name: ");
+                fgets(name, sizeof(name), stdin);
+                name[strcspn(name, "\n")] = 0; // remove trailing newline
+
+                // --- START CANCEL CHECK ---
+                if (strcmp(name, "cancel") == 0) {
+                    fputs(line, file_out); // Write original line
+                    printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
+                    continue; // Skip to the next line in the file
+                }
+                // --- END CANCEL CHECK ---
+
+                printf("Enter new Programme: ");
+                fgets(programme, sizeof(programme), stdin);
+                programme[strcspn(programme, "\n")] = 0; // remove trailing newline
+
+                // --- START CANCEL CHECK ---
+                if (strcmp(programme, "cancel") == 0) {
+                    fputs(line, file_out); // Write original line
+                    printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
+                    continue; // Skip to the next line in the file
+                }
+                // --- END CANCEL CHECK ---
+
+                // --- MODIFIED MARKS INPUT ---
+                // --- 'marksInput' declared here (C99-style) ---
+                char marksInput[50]; // Read marks as a string first
+                while (1) {
+                    printf("Enter new Marks: ");
+                    fgets(marksInput, sizeof(marksInput), stdin);
+                    marksInput[strcspn(marksInput, "\n")] = 0; // remove newline
+
+                    // Check for cancel first
+                    if (strcmp(marksInput, "cancel") == 0) {
+                        break; // Exit the while(1) loop
+                    }
+
+                    // Try to parse the string as a float
+                    if (sscanf(marksInput, "%f", &marks) == 1) {
+                        break; // Valid float, exit the while(1) loop
+                    }
+                    else {
+                        printf("CMS: Invalid marks format. Please enter a number (or 'cancel'): ");
+                    }
+                }
+
+                // Check if the loop was broken by 'cancel'
+                if (strcmp(marksInput, "cancel") == 0) {
+                    fputs(line, file_out); // Write original line
+                    printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
+                    continue; // Skip to the next line in the file
+                }
+                // --- END MODIFIED MARKS INPUT ---
+
+
+                // --- START CONFIRMATION ---
+                printf("\n--- Review Changes ---\n");
+                printf("OLD: %s, %s, %.1f\n", originalName, originalProgramme, originalMarks);
+                printf("NEW: %s, %s, %.1f\n", name, programme, marks);
+                printf("Are you sure you want to save these changes? (Y/N): ");
+
+                // Read the confirmation, clearing buffer
+                while (scanf(" %c", &confirmation) != 1) {
+                    while (getchar() != '\n');
+                }
+                while (getchar() != '\n'); // always clear buffer after scanf
+
+                if (confirmation == 'Y' || confirmation == 'y') {
+                    // Write the *updated* record to the temp file
+                    fprintf(file_out, "%d,%s,%s,%.1f\n", updateId, name, programme, marks);
+                    printf("CMS: Record for ID=%d was successfully updated.\n", updateId);
+                }
+                else {
+                    // Write the *original* record back to the temp file
+                    fprintf(file_out, "%d,%s,%s,%.1f\n", updateId, originalName, originalProgramme, originalMarks);
+                    printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
+                }
+                // --- END CONFIRMATION ---
+
+            }
+            else {
+                // Not the ID we're looking for, write the *original* line to temp file
+                fputs(line, file_out);
+            }
+        }
+        else {
+            // Line format might be incorrect, or not a data line, just preserve it
+            fputs(line, file_out);
+        }
+    }
+
+    // Close both files
+    fclose(file_in);
+    fclose(file_out);
+
+    // Check if we found the record
+    if (found) {
+        // We found and updated the record (or user cancelled), so replace old file with new
+
+        // --- START ROBUST FILE HANDLING ---
+        // Check if remove() fails
+        if (remove("Team_P7_4-CMS.txt") != 0) {
+            printf("CMS: CRITICAL ERROR: Could not delete old database file. Changes not saved.\n");
+            remove("temp.txt"); // Clean up the temp file
+            return;
+        }
+
+        // Check if rename() fails
+        if (rename("temp.txt", "Team_P7_4-CMS.txt") != 0) {
+            printf("CMS: CRITICAL ERROR: Could not rename temp file. Database may be in an unstable state.\n");
+            return;
+        }
+        // --- END ROBUST FILE HANDLING ---
+
+        // Show all records after update, like insertRecord does
+        viewRecords();
+    }
+    else {
+        // Record was not found, so no changes were made. Delete the temp file.
+        remove("temp.txt");
+        printf("CMS: The record with ID=%d does not exist.\n", updateId);
+    }
 }
