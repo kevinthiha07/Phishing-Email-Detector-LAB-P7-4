@@ -242,10 +242,7 @@ void updateRecord() {
     char line[200];
     int found = 0;
 
-    /* // --- These variables were moved for C89 compatibility in the *other* version ---
-    char confirmation;
-    char marksInput[50];
-    */
+  
 
     // Open the original file for reading and a temp file for writing
     FILE* file_in = fopen("Team_P7_4-CMS.txt", "r");
@@ -278,7 +275,7 @@ void updateRecord() {
             if (currentId == updateId) {
                 found = 1;
 
-                // --- 'confirmation' declared here (C99-style) ---
+               
                 char confirmation;
 
                 // Record found, get new data from user
@@ -308,8 +305,7 @@ void updateRecord() {
                 }
                 // --- END CANCEL CHECK ---
 
-                // --- MODIFIED MARKS INPUT ---
-                // --- 'marksInput' declared here (C99-style) ---
+ 
                 char marksInput[50]; // Read marks as a string first
                 while (1) {
                     printf("Enter new Marks: ");
@@ -383,7 +379,7 @@ void updateRecord() {
     if (found) {
         // We found and updated the record (or user cancelled), so replace old file with new
 
-        // --- START ROBUST FILE HANDLING ---
+    
         // Check if remove() fails
         if (remove("Team_P7_4-CMS.txt") != 0) {
             printf("CMS: CRITICAL ERROR: Could not delete old database file. Changes not saved.\n");
@@ -396,7 +392,7 @@ void updateRecord() {
             printf("CMS: CRITICAL ERROR: Could not rename temp file. Database may be in an unstable state.\n");
             return;
         }
-        // --- END ROBUST FILE HANDLING ---
+       
 
         // Show all records after update, like insertRecord does
         viewRecords();
