@@ -22,6 +22,7 @@
     <ClCompile Include="Test.c" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="SleepFile.txt" />
     <Text Include="Team_P7_4-CMS.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
