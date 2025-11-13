@@ -12,6 +12,7 @@ typedef struct {
     float marks;
 } Student;
 
+// Function prototypes
 int checkDuplicateID(int newID);
 void insertRecord();
 void viewRecords();
@@ -19,18 +20,19 @@ void searchQuery();
 void updateRecord();
 void openFile();
 void saveRecords();
-void deleteRecord();
-void showAllSorted(); // New function for sorted display
+void deleteRecord(); // Implementation added
+void showAllSorted();
 
+// Global variables
 char currentFileName[100] = "Team_P7_4-CMS.txt";
 char tempFileName[100] = "temp_workfile.txt";
 int unsavedChanges = 0;
 
-// Function to load students from file into array
+// Function to load students from file into array for sorting
 int loadStudents(Student students[]) {
     FILE* file = fopen(tempFileName, "r");
     if (file == NULL) {
-        return 0;
+        return 0; // No file, so 0 students
     }
 
     char line[200];
@@ -39,6 +41,7 @@ int loadStudents(Student students[]) {
     // Skip header line
     fgets(line, sizeof(line), file);
 
+    // Read student data
     while (fgets(line, sizeof(line), file) != NULL && count < MAX_STUDENTS) {
         if (sscanf(line, "%d,%99[^,],%99[^,],%f",
             &students[count].id, students[count].name,
@@ -51,7 +54,7 @@ int loadStudents(Student students[]) {
     return count;
 }
 
-// Comparison functions for sorting
+// --- Comparison functions for qsort ---
 int compareIDAsc(const void* a, const void* b) {
     return ((Student*)a)->id - ((Student*)b)->id;
 }
@@ -70,6 +73,7 @@ int compareMarksDesc(const void* a, const void* b) {
     return (diff > 0) - (diff < 0); // Returns -1, 0, or 1
 }
 
+// --- Sorting and Display Function ---
 void showAllSorted() {
     Student students[MAX_STUDENTS];
     int count = loadStudents(students);
@@ -89,9 +93,10 @@ void showAllSorted() {
     int choice;
     if (scanf("%d", &choice) != 1) {
         printf("CMS: Invalid choice.\n");
-        while (getchar() != '\n');
+        while (getchar() != '\n'); // Clear input buffer
         return;
     }
+    while (getchar() != '\n'); // Clear trailing newline
 
     // Sort based on user choice
     switch (choice) {
@@ -113,10 +118,11 @@ void showAllSorted() {
         break;
     default:
         printf("CMS: Invalid choice. Displaying unsorted records.\n");
+        // We can just proceed without sorting
         break;
     }
 
-    printf("ID         Name                 Programme               Marks\n");
+    printf("ID          Name                 Programme               Marks\n");
     printf("-------------------------------------------------------------\n");
 
     for (int i = 0; i < count; i++) {
@@ -125,9 +131,11 @@ void showAllSorted() {
     }
 }
 
+// --- Main Function ---
 int main() {
     int choice;
 
+    // --- Declaration Print ---
     printf("Declaration\n");
     printf("SIT's policy on copying does not allow the students to copy source code as well as assessment solutions\n");
     printf("from another person AI or other places. It is the students' responsibility to guarantee that their\n");
@@ -168,6 +176,22 @@ int main() {
         fclose(source);
         fclose(dest);
     }
+    else if (source) {
+        // If dest couldn't be opened
+        printf("CMS: Error: Could not create temp work file. Exiting.\n");
+        fclose(source);
+        return 1;
+    }
+    else {
+        // If source file doesn't exist, create an empty temp file
+        printf("CMS: Warning: '%s' not found. Starting with empty records.\n", currentFileName);
+        if (dest) {
+            // Write a header to the new empty file
+            fprintf(dest, "ID,Name,Programme,Marks\n");
+            fclose(dest);
+        }
+    }
+
 
     while (1) {
         printf("\nStudent Management System (Current File: %s)\n", currentFileName);
@@ -187,9 +211,10 @@ int main() {
         printf("Enter your choice (1-9): ");
         if (scanf("%d", &choice) != 1) {
             printf("CMS: Invalid input. Please enter a number.\n");
-            while (getchar() != '\n');
+            while (getchar() != '\n'); // Clear input buffer
             continue;
         }
+        while (getchar() != '\n'); // Clear trailing newline
 
         switch (choice) {
         case 1:
@@ -221,16 +246,17 @@ int main() {
                 char confirm;
                 printf("\nCMS: You have unsaved changes! Are you sure you want to exit? (y/n): ");
                 scanf(" %c", &confirm);
+                while (getchar() != '\n'); // Clear input buffer
                 if (confirm == 'y' || confirm == 'Y') {
                     printf("CMS: Exiting without saving. All changes discarded.\n");
-                    remove(tempFileName);
+                    remove(tempFileName); // Clean up temp file
                 }
                 else {
-                    continue;
+                    continue; // Go back to menu
                 }
             }
             printf("CMS: Goodbye!\n");
-            remove(tempFileName);
+            remove(tempFileName); // Clean up temp file
             return 0;
         default:
             printf("CMS: Invalid choice. Please enter a number between 1-9.\n");
@@ -241,9 +267,7 @@ int main() {
     return 0;
 }
 
-// The rest of the functions remain the same as previous code...
-// [viewRecords, saveRecords, openFile, checkDuplicateID, insertRecord, searchQuery, updateRecord, deleteRecord]
-// ... (all other functions remain unchanged from the previous version)
+// --- Other Function Implementations ---
 
 void viewRecords() {
     FILE* file = fopen(tempFileName, "r");
@@ -256,7 +280,7 @@ void viewRecords() {
     if (unsavedChanges) {
         printf("*** Displaying UNSAVED CHANGES ***\n");
     }
-    printf("ID         Name                 Programme               Marks\n");
+    printf("ID          Name                 Programme               Marks\n");
     printf("-------------------------------------------------------------\n");
 
     char line[200];
@@ -265,12 +289,18 @@ void viewRecords() {
     char programme[100];
     float marks;
 
-    fgets(line, sizeof(line), file);
+    fgets(line, sizeof(line), file); // Skip header line
 
+    int recordsFound = 0;
     while (fgets(line, sizeof(line), file) != NULL) {
         if (sscanf(line, "%d,%99[^,],%99[^,],%f", &id, name, programme, &marks) == 4) {
             printf("%-10d %-20s %-23s %.1f\n", id, name, programme, marks);
+            recordsFound = 1;
         }
+    }
+
+    if (!recordsFound) {
+        printf("CMS: No student records found.\n");
     }
 
     fclose(file);
@@ -287,6 +317,8 @@ void saveRecords() {
 
     if (source == NULL || dest == NULL) {
         printf("CMS: Error: Cannot save records to file.\n");
+        if (source) fclose(source);
+        if (dest) fclose(dest);
         return;
     }
 
@@ -307,8 +339,9 @@ void openFile() {
         char confirm;
         printf("\nCMS: You have unsaved changes! Are you sure you want to open a new file? (y/n): ");
         scanf(" %c", &confirm);
+        while (getchar() != '\n'); // Clear input buffer
         if (!(confirm == 'y' || confirm == 'Y')) {
-            return;
+            return; // User cancelled
         }
     }
 
@@ -317,36 +350,41 @@ void openFile() {
     printf("\n--- Open File ---\n");
     printf("Enter the filename to open (e.g., students.txt): ");
     scanf("%99s", filename);
+    while (getchar() != '\n'); // Clear input buffer
 
     FILE* testFile = fopen(filename, "r");
     if (testFile == NULL) {
         printf("CMS: Error: Cannot open file '%s'. File does not exist or cannot be accessed.\n", filename);
         return;
     }
-    fclose(testFile);
 
-    strcpy(currentFileName, filename);
-    unsavedChanges = 0;
-
-    FILE* source = fopen(currentFileName, "r");
+    // File exists, now copy it to temp working file
     FILE* dest = fopen(tempFileName, "w");
-    if (source && dest) {
-        char ch;
-        while ((ch = fgetc(source)) != EOF) {
-            fputc(ch, dest);
-        }
-        fclose(source);
-        fclose(dest);
+    if (dest == NULL) {
+        printf("CMS: Error: Could not create temp work file.\n");
+        fclose(testFile);
+        return;
     }
 
+    char ch;
+    while ((ch = fgetc(testFile)) != EOF) {
+        fputc(ch, dest);
+    }
+
+    fclose(testFile); // This was the source
+    fclose(dest);     // This is the new temp file
+
+    strcpy(currentFileName, filename);
+    unsavedChanges = 0; // Freshly opened, no changes yet
+
     printf("CMS: Successfully opened file '%s'\n", filename);
-    viewRecords();
+    viewRecords(); // Show content of the newly opened file
 }
 
 int checkDuplicateID(int newID) {
     FILE* file = fopen(tempFileName, "r");
     if (file == NULL) {
-        return 0;
+        return 0; // Cannot check, assume no duplicate
     }
 
     char line[200];
@@ -354,17 +392,19 @@ int checkDuplicateID(int newID) {
     char tempName[100], tempProgramme[100];
     float tempMarks;
 
+    fgets(line, sizeof(line), file); // Skip header
+
     while (fgets(line, sizeof(line), file) != NULL) {
-        if (sscanf(line, "%d,%99[^,],%99[^,],%f", &existingID, tempName, tempProgramme, &tempMarks) >= 1) {
+        if (sscanf(line, "%d,%99[^,],%99[^,],%f", &existingID, tempName, tempProgramme, &tempMarks) == 4) {
             if (existingID == newID) {
                 fclose(file);
-                return 1;
+                return 1; // Duplicate found
             }
         }
     }
 
     fclose(file);
-    return 0;
+    return 0; // No duplicate
 }
 
 void insertRecord() {
@@ -377,15 +417,16 @@ void insertRecord() {
     printf("\n--- Insert New Student Record ---\n");
     printf("Enter Student Data: ");
 
-    while (getchar() != '\n');
+    // No need for while(getchar() != '\n') here, main loop's scanf handles it
 
     if (fgets(input, sizeof(input), stdin) == NULL) {
         printf("CMS: Error reading input!\n");
         return;
     }
 
-    input[strcspn(input, "\n")] = 0;
+    input[strcspn(input, "\n")] = 0; // Remove trailing newline
 
+    // Parse the specific format
     if (sscanf(input, "ID=\"%d\", Name=\"%99[^\"]\", Programme=\"%99[^\"]\", Marks=\"%f\"",
         &newID, name, programme, &marks) != 4) {
         printf("CMS: Error: Invalid input format!\n");
@@ -398,7 +439,7 @@ void insertRecord() {
         return;
     }
 
-    FILE* file = fopen(tempFileName, "a");
+    FILE* file = fopen(tempFileName, "a"); // Append mode
     if (file == NULL) {
         printf("CMS: Error: Cannot open database file for writing\n");
         return;
@@ -419,9 +460,10 @@ void searchQuery() {
     printf("Enter student ID to search: ");
     if (scanf("%d", &searchId) != 1) {
         printf("CMS: Invalid ID format.\n");
-        while (getchar() != '\n');
+        while (getchar() != '\n'); // Clear input buffer
         return;
     }
+    while (getchar() != '\n'); // Clear trailing newline
 
     FILE* file = fopen(tempFileName, "r");
     if (file == NULL) {
@@ -431,6 +473,8 @@ void searchQuery() {
 
     char line[200];
     int found = 0;
+
+    fgets(line, sizeof(line), file); // Skip header
 
     while (fgets(line, sizeof(line), file) != NULL) {
         int currentId;
@@ -444,7 +488,7 @@ void searchQuery() {
                 printf("------------------------------------------------------------\n");
                 printf("%d\t\t%s\t\t%s\t\t%.1f\n", currentId, currentName, currentProgramme, currentMarks);
                 found = 1;
-                break;
+                break; // Found it, no need to search further
             }
         }
     }
@@ -464,9 +508,10 @@ void updateRecord() {
     float originalMarks;
     char line[200];
     int found = 0;
+    char temp_update_file[] = "temp_update.txt";
 
     FILE* file_in = fopen(tempFileName, "r");
-    FILE* file_out = fopen("temp_update.txt", "w");
+    FILE* file_out = fopen(temp_update_file, "w");
 
     if (file_in == NULL || file_out == NULL) {
         printf("CMS: Error: Cannot open database file(s).\n");
@@ -481,30 +526,47 @@ void updateRecord() {
         while (getchar() != '\n');
         fclose(file_in);
         fclose(file_out);
-        remove("temp_update.txt");
+        remove(temp_update_file);
         return;
     }
-    while (getchar() != '\n');
+    while (getchar() != '\n'); // Clear trailing newline
 
+    // Process the file line by line
     while (fgets(line, sizeof(line), file_in) != NULL) {
+        // Try to parse the line as a data line
         if (sscanf(line, "%d,%99[^,],%99[^,],%f", &currentId, originalName, originalProgramme, &originalMarks) == 4) {
             if (currentId == updateId) {
                 found = 1;
                 char confirmation;
+                char input[500]; // Buffer for single-line input
 
-                printf("Record found. Enter new data for ID %d:\n", updateId);
+                printf("Record found. ID %d: %s, %s, %.1f\n", updateId, originalName, originalProgramme, originalMarks);
+                // MODIFIED PROMPT to include cancel instruction
+                printf("Enter new data (Format: Name=\"Name\", Programme=\"Prog\", Marks=\"0.0\") or press Enter to cancel: ");
 
-                printf("Enter new Name: ");
-                fgets(name, sizeof(name), stdin);
-                name[strcspn(name, "\n")] = 0;
+                if (fgets(input, sizeof(input), stdin) == NULL) {
+                    printf("CMS: Error reading input!\n");
+                    // Need to write original line back and clean up
+                    fputs(line, file_out);
+                    break; // Exit loop
+                }
+                input[strcspn(input, "\n")] = 0; // Remove newline
 
-                printf("Enter new Programme: ");
-                fgets(programme, sizeof(programme), stdin);
-                programme[strcspn(programme, "\n")] = 0;
+                // ADDED CHECK: Handle cancellation (empty input)
+                if (strlen(input) == 0) {
+                    printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
+                    fputs(line, file_out); // Write original line back
+                    continue; // Continue to next line in file
+                }
 
-                printf("Enter new Marks: ");
-                scanf("%f", &marks);
-                while (getchar() != '\n');
+                // Parse the new single-line input format
+                if (sscanf(input, "Name=\"%99[^\"]\", Programme=\"%99[^\"]\", Marks=\"%f\"",
+                    name, programme, &marks) != 3) {
+                    printf("CMS: Error: Invalid input format!\n");
+                    printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
+                    fputs(line, file_out); // Write original line back
+                    continue; // Continue to next line in file
+                }
 
                 printf("\n--- Review Changes ---\n");
                 printf("OLD: %s, %s, %.1f\n", originalName, originalProgramme, originalMarks);
@@ -521,15 +583,18 @@ void updateRecord() {
                     printf("CMS: Use 'Save Records' to make changes permanent.\n");
                 }
                 else {
+                    // Write original line back if cancelled
                     fprintf(file_out, "%d,%s,%s,%.1f\n", updateId, originalName, originalProgramme, originalMarks);
                     printf("CMS: Update cancelled. Original record for ID=%d was kept.\n", updateId);
                 }
             }
             else {
+                // Not the ID we're looking for, write the line as-is
                 fputs(line, file_out);
             }
         }
         else {
+            // Not a data line (e.g., header), write it as-is
             fputs(line, file_out);
         }
     }
@@ -538,15 +603,24 @@ void updateRecord() {
     fclose(file_out);
 
     if (found) {
-        remove(tempFileName);
-        rename("temp_update.txt", tempFileName);
-        viewRecords();
+        // Replace old temp file with the new one
+        if (remove(tempFileName) != 0) {
+            printf("CMS: Error: Could not remove old temp file.\n");
+        }
+        if (rename(temp_update_file, tempFileName) != 0) {
+            printf("CMS: Error: Could not rename new temp file.\n");
+        }
+        if (unsavedChanges) { // Only view if a change was actually made
+            viewRecords();
+        }
     }
     else {
-        remove("temp_update.txt");
+        // No record found, just delete the temp_update file
+        remove(temp_update_file);
         printf("CMS: The record with ID=%d does not exist.\n", updateId);
     }
 }
+
 
 void deleteRecord() {
     printf("CMS: Delete function - To be implemented\n");
