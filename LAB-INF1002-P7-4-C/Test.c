@@ -413,6 +413,7 @@ int checkDuplicateID(int newID) {
     return 0; // No duplicate
 }
 
+
 void insertRecord() {
     int newID;
     char name[100];
@@ -421,9 +422,7 @@ void insertRecord() {
     char input[500];
 
     printf("\n--- Insert New Student Record ---\n");
-    printf("Enter Student Data: ");
-
-    // No need for while(getchar() != '\n') here, main loop's scanf handles it
+    printf("Enter Student Data (Format: ID=number Name=name Programme=programme Mark=marks): ");
 
     if (fgets(input, sizeof(input), stdin) == NULL) {
         printf("CMS: Error reading input!\n");
@@ -432,11 +431,67 @@ void insertRecord() {
 
     input[strcspn(input, "\n")] = 0; // Remove trailing newline
 
-    // Parse the specific format
-    if (sscanf(input, "ID=\"%d\", Name=\"%99[^\"]\", Programme=\"%99[^\"]\", Marks=\"%f\"",
-        &newID, name, programme, &marks) != 4) {
+    // --- Start of Corrected/Simplified Parsing ---
+    // Use a single, robust sscanf attempt to handle spaces in names/programmes properly,
+    // assuming the format is exactly: ID=... Name=... Programme=... Mark=...
+    char tempName[100], tempProgramme[100];
+    int success = 0;
+
+    // Look for the required fields using delimiters to handle spaces in Name
+    char* id_ptr = strstr(input, "ID=");
+    char* name_ptr = strstr(input, "Name=");
+    char* prog_ptr = strstr(input, "Programme=");
+    char* mark_ptr = strstr(input, "Mark=");
+
+    if (id_ptr && name_ptr && prog_ptr && mark_ptr && id_ptr < name_ptr && name_ptr < prog_ptr && prog_ptr < mark_ptr) {
+        id_ptr += 3;
+        name_ptr += 5;
+        prog_ptr += 10;
+        mark_ptr += 5;
+
+        // 1. Extract ID
+        if (sscanf(id_ptr, "%d", &newID) != 1) goto parse_error;
+
+        // 2. Extract Name (between "Name=" and " Programme=")
+        char* name_end = prog_ptr - 10;
+        if (name_end <= name_ptr) goto parse_error;
+        strncpy(name, name_ptr, name_end - name_ptr);
+        name[name_end - name_ptr - 1] = '\0'; // -1 to skip the space before Programme
+
+        // 3. Extract Programme (between "Programme=" and " Mark=")
+        char* prog_end = mark_ptr - 5;
+        if (prog_end <= prog_ptr) goto parse_error;
+        strncpy(programme, prog_ptr, prog_end - prog_ptr);
+        programme[prog_end - prog_ptr - 1] = '\0'; // -1 to skip the space before Mark
+
+        // 4. Extract Mark
+        if (sscanf(mark_ptr, "%f", &marks) != 1) goto parse_error;
+
+        success = 1;
+    }
+
+    // Fallback/Simpler parsing attempt (if names/programmes don't contain spaces)
+    if (!success) {
+        if (sscanf(input, "ID=%d Name=%99s Programme=%99s Mark=%f",
+            &newID, tempName, tempProgramme, &marks) == 4) {
+            strcpy(name, tempName);
+            strcpy(programme, tempProgramme);
+            success = 1;
+        }
+    }
+
+    if (!success) {
+    parse_error:
         printf("CMS: Error: Invalid input format!\n");
-        printf("CMS: Expected: ID=\"number\", Name=\"name\", Programme=\"programme\", Marks=\"marks\"\n");
+        printf("CMS: Expected: ID=number Name=name Programme=programme Mark=marks\n");
+        return;
+    }
+
+    // --- End of Corrected/Simplified Parsing ---
+
+    // Validate mark range
+    if (marks < 0 || marks > 100) {
+        printf("CMS: Error: Marks must be between 0 and 100!\n");
         return;
     }
 
@@ -445,14 +500,16 @@ void insertRecord() {
         return;
     }
 
-    FILE* file = fopen(tempFileName, "a"); // Append mode
+    // Use append mode 'a' to add the new record to the working file
+    FILE* file = fopen(tempFileName, "a");
     if (file == NULL) {
         printf("CMS: Error: Cannot open database file for writing\n");
         return;
     }
 
+    // Write the new record in CSV format
     fprintf(file, "%d,%s,%s,%.1f\n", newID, name, programme, marks);
-    fclose(file);
+    fclose(file); // CRITICAL: Close the file to ensure data is written to disk
 
     unsavedChanges = 1;
     printf("CMS: A new record with ID=%d was successfully inserted.\n", newID);
@@ -766,5 +823,3 @@ void exportToCSV() {
     printf("CMS: Records successfully exported to '%s'.\n", exportFileName);
     printf("CMS: You can open this file with Excel or other spreadsheet software.\n");
 }
-
-
