@@ -1,11 +1,11 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // <-- Needed for malloc, realloc, calloc, free, exit
+#include <stdlib.h> //used for malloc, realloc, calloc, free, exit
 #include <ctype.h>
 
-#define MAX_STUDENTS 100 // --- This is now only used for showAllSorted's local array
-#define INITIAL_CAPACITY 10 // --- NEW --- Initial size for our dynamic array
+#define MAX_STUDENTS 100 //only used for showAllSorted's local array
+#define INITIAL_CAPACITY 10 //Initial size for our dynamic array
 
 typedef struct {
     int id;
@@ -14,8 +14,7 @@ typedef struct {
     float marks;
 } Student;
 
-// --- Function Prototypes ---
-// ... (Original prototypes) ...
+//functions
 void insertRecord();
 void viewRecords();
 void searchQuery();
@@ -27,25 +26,25 @@ void showAllSorted();
 void exportToCSV();
 void initializeSystem();
 void showMainMenu();
-// --- NEW Prototypes ---
+void showSummaryStatistics();
 void cleanup();
 void loadGlobalStudents();
 void resyncTempFile();
 
 
-// --- Global variables ---
+
 char currentFileName[100] = "";
 char tempFileName[100] = "temp_workfile.txt";
 int unsavedChanges = 0;
 int fileLoaded = 0;
 
-// --- NEW Global Dynamic Array ---
+
 Student* g_students = NULL; // Pointer to our dynamic array of students
 int g_studentCount = 0;     // How many students are *in* the array
 int g_studentCapacity = 0;  // How much space is *allocated* for the array
 
-// --- NEW Function: Cleanup ---
-// This function frees all dynamic memory and removes temp files.
+
+// cleanup function frees all dynamic memory and removes temp files.
 void cleanup() {
     if (g_students != NULL) {
         free(g_students);
@@ -62,8 +61,7 @@ void cleanup() {
     printf("CMS: System cleaned up.\n");
 }
 
-// --- NEW Function: Load Students into Global Array ---
-// Replaces the old 'loadStudents' and is called by openFile
+//function loadgloabalstudents
 void loadGlobalStudents() {
     // If memory is already allocated (e.g., from a previous file), free it first.
     if (g_students != NULL) {
@@ -121,9 +119,7 @@ void loadGlobalStudents() {
     printf("CMS: Loaded %d student records into memory.\n", g_studentCount);
 }
 
-// --- NEW Function: Resync Temp File ---
-// Rewrites the temp file from the in-memory g_students array
-// Used by updateRecord() and deleteRecord()
+//function resyncTempfile
 void resyncTempFile() {
     FILE* file = fopen(tempFileName, "w"); // "w" mode to overwrite
     if (file == NULL) {
@@ -147,7 +143,7 @@ void resyncTempFile() {
 }
 
 
-// --- Comparison functions for qsort (Unchanged) ---
+
 int compareIDDesc(const void* a, const void* b) {
     return ((Student*)b)->id - ((Student*)a)->id;
 }
@@ -157,8 +153,8 @@ int compareMarksDesc(const void* a, const void* b) {
     return (diff > 0) - (diff < 0);
 }
 
-// --- MODIFIED Sorting and Display Function ---
-// Now copies from g_students instead of reading from file
+
+//sort function
 void showAllSorted() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
@@ -170,15 +166,15 @@ void showAllSorted() {
         return;
     }
 
-    // --- DYNAMIC ALLOCATION ---
-    // 1. Allocate a temporary array to hold the copy
+    
+    //allocate a temporary array to hold the copy
     Student* sortedArray = (Student*)malloc(g_studentCount * sizeof(Student));
     if (sortedArray == NULL) {
         printf("CMS: Error: Could not allocate memory for sorting.\n");
         return;
     }
 
-    // 2. Copy data from the global array to the temporary array
+    //Copy data from the global array to the temporary array
     memcpy(sortedArray, g_students, g_studentCount * sizeof(Student));
 
     printf("\nSort Options:\n");
@@ -188,7 +184,7 @@ void showAllSorted() {
     char input[20];
     if (fgets(input, sizeof(input), stdin) == NULL) {
         printf("CMS: Error reading input.\n");
-        free(sortedArray); // --- Don't forget to free on early exit!
+        free(sortedArray); 
         return;
     }
 
@@ -212,7 +208,7 @@ void showAllSorted() {
         printf("CMS: Invalid choice '%s'. Displaying unsorted records.\n", input);
         strcpy(sortField, "Unsorted (Original Load Order)");
         sorted = 0;
-        // Note: 'sortedArray' is already in the original load order
+        //'sortedArray' is already in the original load order
     }
 
     if (sorted) {
@@ -234,15 +230,12 @@ void showAllSorted() {
     free(sortedArray);
 }
 
-// --- New Function: Initialize System ---
 void initializeSystem() {
-    // remove(tempFileName); // Moved to cleanup()
     printf("=== Class Management System (CMS) ===\n");
     printf("System initialized. Please open a data file to begin.\n");
 }
 
-// --- MODIFIED Show Main Menu ---
-// Added cleanup() call on exit
+//Shows main menu
 void showMainMenu() {
     int choice;
 
@@ -260,9 +253,10 @@ void showMainMenu() {
         printf("6. Delete\n");
         printf("7. Save Records\n");
         printf("8. Export to CSV\n");
-        printf("9. Exit\n\n"); // Note: Removed "Open File" as it's now in the main loop
+        printf("9. Show Summary Statistics\n"); 
+        printf("10. Exit\n\n");                 
 
-        printf("Enter your choice (1-9): ");
+        printf("Enter your choice (1-10): "); 
         if (scanf("%d", &choice) != 1) {
             printf("CMS: Invalid input. Please enter a number.\n");
             while (getchar() != '\n');
@@ -279,7 +273,8 @@ void showMainMenu() {
         case 6: deleteRecord(); break;
         case 7: saveRecords(); break;
         case 8: exportToCSV(); break;
-        case 9:
+        case 9: showSummaryStatistics(); break; 
+        case 10:                                
             if (unsavedChanges) {
                 char confirm;
                 printf("\nCMS: You have unsaved changes! Are you sure you want to exit? (y/n): ");
@@ -289,27 +284,25 @@ void showMainMenu() {
                     printf("CMS: Exiting without saving. All changes discarded.\n");
                 }
                 else {
-                    continue; // Don't exit, go back to menu
+                    continue; //go back to menu
                 }
             }
             printf("CMS: Goodbye!\n");
-            cleanup(); // --- NEW: Call cleanup before exiting
+            cleanup(); 
             exit(0);
         default:
-            printf("CMS: Invalid choice. Please enter a number between 1-9.\n");
+            printf("CMS: Invalid choice. Please enter a number between 1-10.\n"); 
             break;
         }
     }
 }
 
-// --- MODIFIED Main Function ---
-// Calls cleanup() on exit
+
+//main function
 int main() {
-    // --- Declaration Print (Unchanged) ---
+    
     printf("Declaration\n");
-    // ... (rest of declaration) ...
     printf("Declared by: P7_4\n");
-    // ... (team members) ...
     printf("Date: 25 November 2025\n\n");
 
     initializeSystem();
@@ -337,7 +330,7 @@ int main() {
             break;
         case 2:
             printf("CMS: Goodbye!\n");
-            cleanup(); // --- NEW: Call cleanup before exiting
+            cleanup();//Calls cleanup before exiting
             return 0;
         default:
             printf("CMS: Invalid choice. Please enter 1 or 2.\n");
@@ -350,8 +343,7 @@ int main() {
     return 0;
 }
 
-// --- MODIFIED View Records ---
-// Now reads from g_students array in memory
+//function view record.
 void viewRecords() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
@@ -381,15 +373,14 @@ void viewRecords() {
     }
 }
 
-// --- Save Records (Unchanged) ---
-// This function's logic is still valid. It copies the 'tempFileName'
-// (which we now keep in sync) to the 'currentFileName'.
+//function save.
+
 void saveRecords() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
         return;
     }
-    // ... (rest of function is unchanged and correct) ...
+    
 
     if (!unsavedChanges) {
         printf("CMS: No changes to save.\n");
@@ -418,8 +409,8 @@ void saveRecords() {
     printf("CMS: All changes successfully saved to '%s'\n", currentFileName);
 }
 
-// --- MODIFIED Open File Function ---
-// Now calls loadGlobalStudents()
+
+//function open file
 void openFile() {
     if (unsavedChanges && fileLoaded) {
         char confirm;
@@ -432,9 +423,9 @@ void openFile() {
         // If 'y', proceed to open, which will call cleanup()
     }
 
-    // --- NEW: Cleanup old data before opening new file ---
+   
     if (fileLoaded) {
-        cleanup(); // Free old g_students, remove old temp file
+        cleanup(); //Free old g_students remove old temp file
     }
 
     char filename[100];
@@ -469,15 +460,14 @@ void openFile() {
     unsavedChanges = 0;
     fileLoaded = 1;
 
-    // --- NEW: Load the data from temp file into our dynamic array ---
+
     loadGlobalStudents();
 
     printf("CMS: Successfully opened file '%s'\n", filename);
-    viewRecords(); // Show records from memory
+    viewRecords(); //Show records from memory
 }
 
-// --- MODIFIED Check Duplicate ID ---
-// Now checks the g_students array in memory
+//function check duplicate.
 int checkDuplicateID(int newID) {
     if (!fileLoaded) {
         return 0;
@@ -493,8 +483,7 @@ int checkDuplicateID(int newID) {
     return 0; // Not found
 }
 
-// --- MODIFIED Insert Record ---
-// Now inserts into g_students array AND appends to temp file
+//Function insert.
 void insertRecord() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
@@ -516,7 +505,7 @@ void insertRecord() {
     }
     input[strcspn(input, "\n")] = 0;
 
-    // --- (Your existing parsing logic - unchanged) ---
+    
     char tempName[100], tempProgramme[100];
     int success = 0;
     char* id_ptr = strstr(input, "ID=");
@@ -555,24 +544,22 @@ void insertRecord() {
         printf("CMS: Expected: ID=number Name=name Programme=programme Mark=marks\n");
         return;
     }
-    // --- (End of your parsing logic) ---
+    
 
     if (marks < 0 || marks > 100) {
         printf("CMS: Error: Marks must be between 0 and 100!\n");
         return;
     }
 
-    // --- MODIFIED: Uses new, faster function
+
     if (checkDuplicateID(newID)) {
         printf("CMS: Error: Student with ID %d already exists! Insertion cancelled.\n", newID);
         return;
     }
 
-    // --- NEW: Add to in-memory dynamic array ---
-    // 1. Check if we need to reallocate
+
+    //Check if we need to reallocate
     if (g_studentCount == g_studentCapacity) {
-        // Note: g_studentCapacity should never be 0 here if a file was loaded,
-        // but this handles inserting into an empty (new) file.
         if (g_studentCapacity == 0) {
             g_studentCapacity = INITIAL_CAPACITY;
             g_students = (Student*)calloc(g_studentCapacity, sizeof(Student));
@@ -588,20 +575,18 @@ void insertRecord() {
         }
     }
 
-    // 2. Add the new student to the in-memory array
+    //Add the new student to the in-memory array
     g_students[g_studentCount].id = newID;
     strcpy(g_students[g_studentCount].name, name);
     strcpy(g_students[g_studentCount].programme, programme);
     g_students[g_studentCount].marks = marks;
     g_studentCount++; // Increment the count
 
-    // --- MODIFIED: Still append to temp file to keep it in sync ---
-    FILE* file = fopen(tempFileName, "a"); // 'a' for append
+    
+    FILE* file = fopen(tempFileName, "a"); 
     if (file == NULL) {
         printf("CMS: Error: Cannot open database file for writing\n");
-        // CRITICAL: We added to memory but not file. This is a problem.
-        // For simplicity, we'll just report the error.
-        // A more robust system might "rollback" the memory change.
+
         return;
     }
     fprintf(file, "%d,%s,%s,%.1f\n", newID, name, programme, marks);
@@ -613,8 +598,7 @@ void insertRecord() {
     viewRecords(); // Show updated list from memory
 }
 
-// --- MODIFIED Search Query ---
-// Now searches the g_students array in memory
+//Function query.
 void searchQuery() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
@@ -631,7 +615,7 @@ void searchQuery() {
     while (getchar() != '\n');
 
     int found = 0;
-    // Loop through the in-memory array
+   //Loop through the in-memory array
     for (int i = 0; i < g_studentCount; i++) {
         if (g_students[i].id == searchId) {
             printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
@@ -643,7 +627,7 @@ void searchQuery() {
                 g_students[i].programme,
                 g_students[i].marks);
             found = 1;
-            break; // Stop searching once found
+            break;//Stop searching once found
         }
     }
 
@@ -652,8 +636,7 @@ void searchQuery() {
     }
 }
 
-// --- MODIFIED Update Record ---
-// Updates g_students array, then calls resyncTempFile()
+//function update.
 void updateRecord() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
@@ -669,7 +652,7 @@ void updateRecord() {
     }
     while (getchar() != '\n');
 
-    // 1. Find the student in the in-memory array
+//Find the student in the in-memory array
     int foundIndex = -1;
     for (int i = 0; i < g_studentCount; i++) {
         if (g_students[i].id == updateId) {
@@ -683,7 +666,7 @@ void updateRecord() {
         return;
     }
 
-    // 2. Get new data (your existing logic)
+ //Get new data
     char name[100], programme[100];
     float marks;
     char confirmation;
@@ -724,14 +707,14 @@ void updateRecord() {
     scanf(" %c", &confirmation);
     while (getchar() != '\n');
 
-    // 3. Update in memory and resync file
+  //Update in memory and resync file
     if (confirmation == 'Y' || confirmation == 'y') {
         // Update the in-memory array
         strcpy(g_students[foundIndex].name, name);
         strcpy(g_students[foundIndex].programme, programme);
         g_students[foundIndex].marks = marks;
 
-        // Rewrite the entire temp file from memory
+      // Rewrite the entire temp file from memory
         resyncTempFile();
 
         printf("CMS: Record for ID=%d was successfully updated.\n", updateId);
@@ -744,8 +727,7 @@ void updateRecord() {
     }
 }
 
-// --- MODIFIED Delete Record ---
-// Deletes from g_students array, then calls resyncTempFile()
+
 void deleteRecord() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
@@ -761,7 +743,7 @@ void deleteRecord() {
     }
     while (getchar() != '\n');
 
-    // 1. Find the student in the in-memory array
+  //Find the student in the in-memory array
     int foundIndex = -1;
     for (int i = 0; i < g_studentCount; i++) {
         if (g_students[i].id == targetID) {
@@ -775,29 +757,25 @@ void deleteRecord() {
         return;
     }
 
-    // 2. Confirm deletion
+   //Confirm deletion
     printf("CMS: Are you sure you want to delete record with ID=%d? ", targetID);
     printf("Type \"Y\" to Confirm or type \"N\" to cancel.\n");
     printf("P1_1: ");
 
     char confirm;
     if (scanf(" %c", &confirm) != 1) {
-        confirm = 'N'; // Default to 'N' on bad input
+        confirm = 'N'; //Default to 'N' on bad input
     }
     while (getchar() != '\n');
 
-    // 3. Delete from memory and resync file
+    //Delete from memory and resync file
     if (confirm == 'Y' || confirm == 'y') {
-        // Delete from memory by shifting all subsequent elements left
+    //Delete from memory by shifting all subsequent elements left
         for (int i = foundIndex; i < g_studentCount - 1; i++) {
-            g_students[i] = g_students[i + 1]; // Struct copy
+            g_students[i] = g_students[i + 1]; //Struct copy
         }
-        g_studentCount--; // Reduce the count
+        g_studentCount--; //Reduce the count
 
-        // (Optional: We could realloc to shrink the array if g_studentCount
-        // is much smaller than g_studentCapacity, but it's not required)
-
-        // Rewrite the entire temp file from memory
         resyncTempFile();
 
         printf("CMS: The record with ID=%d is successfully deleted.\n", targetID);
@@ -809,11 +787,67 @@ void deleteRecord() {
         printf("CMS: The deletion is cancelled.\n");
     }
 }
+//Summary Function
+void showSummaryStatistics() {
+    if (!fileLoaded) {
+        printf("CMS: No file loaded. Please open a file first.\n");
+        return;
+    }
+
+    // Guard clause: Check if there are any students
+    if (g_studentCount == 0) {
+        printf("CMS: No student records found. Cannot generate summary.\n");
+        return;
+    }
+
+    // --- 1. Initialize variables ---
+    double totalMarks = 0.0;
+
+    // Start by assuming the first student has the highest/lowest mark
+    float highestMark = g_students[0].marks;
+    float lowestMark = g_students[0].marks;
+
+    // Store the *index* of the student, which is safer
+    int highestIndex = 0;
+    int lowestIndex = 0;
+
+    //Loop through the in memory array
+    for (int i = 0; i < g_studentCount; i++) {
+        // Add to total for average
+        totalMarks += g_students[i].marks;
+
+        // Check for new highest
+        if (g_students[i].marks > highestMark) {
+            highestMark = g_students[i].marks;
+            highestIndex = i;
+        }
+
+        // Check for new lowest
+        if (g_students[i].marks < lowestMark) {
+            lowestMark = g_students[i].marks;
+            lowestIndex = i;
+        }
+    }
+
+    //calculate then display the result.
+    double averageMark = totalMarks / g_studentCount;
+
+    printf("\n---------------- Summary Statistics ----------------------\n");
+    printf("Total number of students: %d\n", g_studentCount);
+    printf("Average mark:             %.2f\n", averageMark); // Show 2 decimal places for average
+    printf("Highest mark:             %.1f (Student: %s, ID: %d)\n",
+        g_students[highestIndex].marks,
+        g_students[highestIndex].name,
+        g_students[highestIndex].id);
+    printf("Lowest mark:              %.1f (Student: %s, ID: %d)\n",
+        g_students[lowestIndex].marks,
+        g_students[lowestIndex].name,
+        g_students[lowestIndex].id);
+    printf("-----------------------------------------------------------\n");
+}
 
 
 // --- Export to CSV (Unchanged) ---
-// This function's logic is still valid. It copies the 'tempFileName'
-// (which we now keep in sync) to the 'exportFileName'.
 void exportToCSV() {
     if (!fileLoaded) {
         printf("CMS: No file loaded. Please open a file first.\n");
