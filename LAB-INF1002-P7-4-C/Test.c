@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -22,6 +22,7 @@ void openFile();
 void saveRecords();
 void deleteRecord(); // Implementation added
 void showAllSorted();
+void exportToCSV();
 
 // Global variables
 char currentFileName[100] = "Team_P7_4-CMS.txt";
@@ -198,7 +199,7 @@ int main() {
         if (unsavedChanges) {
             printf("*** UNSAVED CHANGES ***\n");
         }
-        printf("1. Open File\n");
+        printf("1. Open New File\n");
         printf("2. Show All\n");
         printf("3. Show All w/ Sort\n");
         printf("4. Insert\n");
@@ -206,9 +207,10 @@ int main() {
         printf("6. Update\n");
         printf("7. Delete\n");
         printf("8. Save Records\n");
-        printf("9. Exit\n\n");
+        printf("9. Export to CSV\n");
+        printf("10. Exit\n\n");
 
-        printf("Enter your choice (1-9): ");
+        printf("Enter your choice (1-10): ");
         if (scanf("%d", &choice) != 1) {
             printf("CMS: Invalid input. Please enter a number.\n");
             while (getchar() != '\n'); // Clear input buffer
@@ -242,6 +244,9 @@ int main() {
             saveRecords();
             break;
         case 9:
+            exportToCSV();   // 👈 NEW
+            break;
+        case 10:
             if (unsavedChanges) {
                 char confirm;
                 printf("\nCMS: You have unsaved changes! Are you sure you want to exit? (y/n): ");
@@ -259,9 +264,10 @@ int main() {
             remove(tempFileName); // Clean up temp file
             return 0;
         default:
-            printf("CMS: Invalid choice. Please enter a number between 1-9.\n");
+            printf("CMS: Invalid choice. Please enter a number between 1-10.\n");
             break;
         }
+
     }
 
     return 0;
@@ -718,4 +724,47 @@ void deleteRecord() {
     }
 
 }
+
+void exportToCSV() {
+    char exportFileName[120];
+
+    printf("\n--- Export Records to CSV ---\n");
+    if (unsavedChanges) {
+        printf("CMS: Note: The CSV will include UNSAVED CHANGES from the current session.\n");
+    }
+
+    printf("Enter CSV filename to export to (e.g., records_export.csv): ");
+    if (scanf("%119s", exportFileName) != 1) {
+        printf("CMS: Invalid filename input.\n");
+        while (getchar() != '\n'); // clear input buffer
+        return;
+    }
+    while (getchar() != '\n'); // clear trailing newline
+
+    FILE* source = fopen(tempFileName, "r");
+    if (source == NULL) {
+        printf("CMS: Error: Cannot open temporary database file '%s'.\n", tempFileName);
+        return;
+    }
+
+    FILE* dest = fopen(exportFileName, "w");
+    if (dest == NULL) {
+        printf("CMS: Error: Cannot create CSV file '%s'.\n", exportFileName);
+        fclose(source);
+        return;
+    }
+
+    // Copy entire contents of temp file (already in CSV-style format)
+    char ch;
+    while ((ch = fgetc(source)) != EOF) {
+        fputc(ch, dest);
+    }
+
+    fclose(source);
+    fclose(dest);
+
+    printf("CMS: Records successfully exported to '%s'.\n", exportFileName);
+    printf("CMS: You can open this file with Excel or other spreadsheet software.\n");
+}
+
 
