@@ -623,5 +623,98 @@ void updateRecord() {
 
 
 void deleteRecord() {
-    printf("CMS: Delete function - To be implemented\n");
+    int targetID;
+    printf("P1_1: DELETE ID=");
+    if (scanf("%d", &targetID) != 1) {
+        printf("CMS: Invalid ID format.\n");
+        while (getchar() != '\n'); // clear input buffer
+        return;
+    }
+    while (getchar() != '\n'); // clear trailing newline
+
+    FILE* file_in = fopen(tempFileName, "r");
+    if (file_in == NULL) {
+        printf("CMS: Error: Cannot open database file '%s'.\n", tempFileName);
+        return;
+    }
+
+    char temp_delete_file[] = "temp_delete.txt";
+    FILE* file_out = fopen(temp_delete_file, "w");
+    if (file_out == NULL) {
+        printf("CMS: Error: Cannot create temporary file for delete.\n");
+        fclose(file_in);
+        return;
+    }
+
+    char line[200];
+    int found = 0;
+
+    // Copy header line as-is
+    if (fgets(line, sizeof(line), file_in) != NULL) {
+        fputs(line, file_out);
+    }
+
+    int id;
+    char name[100];
+    char programme[100];
+    float marks;
+
+    while (fgets(line, sizeof(line), file_in) != NULL) {
+        if (sscanf(line, "%d,%99[^,],%99[^,],%f", &id, name, programme, &marks) == 4) {
+            if (id == targetID) {
+                found = 1;
+
+                printf("CMS: Are you sure you want to delete record with ID=%d? ", targetID);
+                printf("Type \"Y\" to Confirm or type \"N\" to cancel.\n");
+
+                printf("P1_1: ");
+                char confirm;
+                if (scanf(" %c", &confirm) != 1) {
+                    confirm = 'N';
+                }
+                while (getchar() != '\n'); // clear input buffer
+
+                if (confirm == 'Y' || confirm == 'y') {
+                    printf("CMS: The record with ID=%d is successfully deleted.\n", targetID);
+                    unsavedChanges = 1;
+                    printf("CMS: Use 'Save Records' to make changes permanent.\n");
+                    // Do NOT write this record to file_out (i.e. skip -> delete)
+                    continue;
+                }
+                else {
+                    printf("CMS: The deletion is cancelled.\n");
+                    // Keep original record by writing it back
+                    fputs(line, file_out);
+                    continue;
+                }
+            }
+        }
+
+        // For non-matching IDs or unparsable lines, just copy them over
+        fputs(line, file_out);
+    }
+
+    fclose(file_in);
+    fclose(file_out);
+
+    if (!found) {
+        printf("CMS: The record with ID=%d does not exist.\n", targetID);
+        remove(temp_delete_file);
+        return;
+    }
+
+    // Replace old temp file with the new one
+    if (remove(tempFileName) != 0) {
+        printf("CMS: Error: Could not remove old temp file.\n");
+    }
+    else if (rename(temp_delete_file, tempFileName) != 0) {
+        printf("CMS: Error: Could not rename new temp file.\n");
+    }
+    else {
+        // Show updated records if there are unsaved changes due to deletion
+        if (unsavedChanges) {
+            viewRecords();
+        }
+    }
 }
+

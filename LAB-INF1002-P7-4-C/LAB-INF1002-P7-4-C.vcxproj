@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="delete.c" />
     <ClCompile Include="Test.c" />
   </ItemGroup>
   <ItemGroup>
