@@ -23,6 +23,5 @@
     <Text Include="Team_P7_4-CMS.txt">
       <Filter>Source Files</Filter>
     </Text>
-    <Text Include="SleepFile.txt" />
   </ItemGroup>
 </Project>

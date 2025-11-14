@@ -1,8 +1,0 @@
-Hello Chingu
-Functions 1,2,3, 8 is done
-1, Open , Type the exact file name, i have created another one for testing
-2, Show all, just shows the data, including unsaved data
-3, Show all, and will give options to sort, showing unsaved data as well
-8, Save to file, if you hit 9 without 8, you will be prompted to save or ignore changes
-
-Good luck chingu
