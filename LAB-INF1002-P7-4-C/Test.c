@@ -716,5 +716,6 @@ void deleteRecord() {
             viewRecords();
         }
     }
+
 }
 
