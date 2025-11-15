@@ -5,8 +5,4 @@ ID (data type: integer),Name (String),Programme (String), Marks (data type: floa
 1,Oh,Sleep,100.0
 2,Oh No,Sleep,100.0
 3,Oh Sheet,Sleep,100.0
-2301235,Cookie,Monstor,69.7
-2201235,Rong Wright,Answer,89.0
-2304561,John Levoy,Digital Supply Chain,89.9
-4,New Bi,Grab Food,90.3
-2,Hoo,Lee,2.0
+4,1,1,1.0
