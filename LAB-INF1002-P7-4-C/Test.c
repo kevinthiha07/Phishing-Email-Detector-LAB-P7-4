@@ -1,802 +1,611 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
-
-#define INITIAL_CAPACITY 10
+#include <stdlib.h>
 
 typedef struct {
     int id;
     char name[100];
     char programme[100];
-    float marks;
+    float mark;
 } Student;
 
-// Function declarations
-void insertRecord();
-void viewRecords();
-void searchQuery();
-void updateRecord();
-void openFile();
-void saveRecords();
-void deleteRecord();
-void showAllSorted();
-void exportToCSV();
-void initializeSystem();
-void showMainMenu();
-void showSummaryStatistics();
-void cleanup();
-void loadGlobalStudents();
-void resyncTempFile();
-int checkDuplicateID(int newID);
+Student records[100];
+int count = 0;
+int unsaved_changes = 0;
 
-// Global variables
-char currentFileName[100] = "";
-char tempFileName[100] = "temp_workfile.txt";
-int unsavedChanges = 0;
-int fileLoaded = 0;
-
-Student* g_students = NULL;
-int g_studentCount = 0;
-int g_studentCapacity = 0;
-
-// Comparison functions for sorting
-int compareIDDesc(const void* a, const void* b) {
-    return ((Student*)b)->id - ((Student*)a)->id;
-}
-
-int compareMarksDesc(const void* a, const void* b) {
-    float diff = ((Student*)b)->marks - ((Student*)a)->marks;
-    return (diff > 0) - (diff < 0);
-}
-
-void cleanup() {
-    if (g_students != NULL) {
-        free(g_students);
-        g_students = NULL;
-    }
-    remove(tempFileName);
-    g_studentCount = 0;
-    g_studentCapacity = 0;
-    fileLoaded = 0;
-    unsavedChanges = 0;
-    strcpy(currentFileName, "");
-}
-
-void loadGlobalStudents() {
-    if (g_students != NULL) {
-        free(g_students);
-        g_students = NULL;
-        g_studentCount = 0;
-        g_studentCapacity = 0;
-    }
-
-    FILE* file = fopen(tempFileName, "r");
-    if (file == NULL) {
+void load_data_from_file() {
+    FILE* file = fopen("Team_P7_4-CMS.txt", "r");
+    if (!file) {
+        printf("Error: Cannot open Team_P7_4-CMS.txt\n");
         return;
     }
 
-    char line[200];
-    fgets(line, sizeof(line), file); // Skip header
+    char line[500];
 
-    while (fgets(line, sizeof(line), file) != NULL) {
-        if (g_studentCount == g_studentCapacity) {
-            if (g_studentCapacity == 0) {
-                g_studentCapacity = INITIAL_CAPACITY;
-                g_students = (Student*)calloc(g_studentCapacity, sizeof(Student));
+    // Skip header line
+    if (fgets(line, sizeof(line), file)) {
+        // Header found
+    }
+
+    // Read data lines
+    while (fgets(line, sizeof(line), file)) {
+        line[strcspn(line, "\n")] = 0;
+        if (strlen(line) == 0) continue;
+
+        int id;
+        char name[100] = "";
+        char programme[100] = "";
+        float mark;
+
+        // Parse CSV format
+        char* token;
+        int field = 0;
+        char temp_line[500];
+        strcpy(temp_line, line);
+
+        token = strtok(temp_line, ",");
+        while (token != NULL) {
+            // Remove spaces
+            while (*token == ' ') token++;
+            char* end = token + strlen(token) - 1;
+            while (end > token && *end == ' ') *end-- = '\0';
+
+            switch (field) {
+            case 0: id = atoi(token); break;
+            case 1: strcpy(name, token); break;
+            case 2: strcpy(programme, token); break;
+            case 3: mark = atof(token); break;
             }
-            else {
-                g_studentCapacity *= 2;
-                Student* temp = (Student*)realloc(g_students, g_studentCapacity * sizeof(Student));
-                if (temp == NULL) {
-                    printf("CMS: Memory allocation failed!\n");
-                    fclose(file);
-                    return;
-                }
-                g_students = temp;
-            }
+
+            token = strtok(NULL, ",");
+            field++;
         }
 
-        if (sscanf(line, "%d,%99[^,],%99[^,],%f",
-            &g_students[g_studentCount].id,
-            g_students[g_studentCount].name,
-            g_students[g_studentCount].programme,
-            &g_students[g_studentCount].marks) == 4) {
-            g_studentCount++;
+        if (field == 4) {
+            records[count].id = id;
+            strcpy(records[count].name, name);
+            strcpy(records[count].programme, programme);
+            records[count].mark = mark;
+            count++;
         }
     }
+
     fclose(file);
 }
 
-void resyncTempFile() {
-    FILE* file = fopen(tempFileName, "w");
-    if (file == NULL) return;
+void save_data_to_file() {
+    FILE* file = fopen("Team_P7_4-CMS.txt", "w");
+    if (!file) {
+        printf("Error: Cannot save to Team_P7_4-CMS.txt\n");
+        return;
+    }
 
     fprintf(file, "ID,Name,Programme,Mark\n");
-    for (int i = 0; i < g_studentCount; i++) {
+    for (int i = 0; i < count; i++) {
         fprintf(file, "%d,%s,%s,%.1f\n",
-            g_students[i].id,
-            g_students[i].name,
-            g_students[i].programme,
-            g_students[i].marks);
+            records[i].id, records[i].name,
+            records[i].programme, records[i].mark);
     }
+
     fclose(file);
+    unsaved_changes = 0;
+    printf("CMS: All changes saved successfully.\n");
 }
 
-void deleteRecord() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
+void find_column_widths(int* id_width, int* name_width, int* prog_width, int* mark_width) {
+    *id_width = 2;
+    *name_width = 4;
+    *prog_width = 8;
+    *mark_width = 4;
+
+    for (int i = 0; i < count; i++) {
+        char temp[50];
+        sprintf(temp, "%d", records[i].id);
+        int id_len = strlen(temp);
+        int name_len = strlen(records[i].name);
+        int prog_len = strlen(records[i].programme);
+        sprintf(temp, "%.1f", records[i].mark);
+        int mark_len = strlen(temp);
+
+        if (id_len > *id_width) *id_width = id_len;
+        if (name_len > *name_width) *name_width = name_len;
+        if (prog_len > *prog_width) *prog_width = prog_len;
+        if (mark_len > *mark_width) *mark_width = mark_len;
+    }
+
+    *name_width += 2;
+    *prog_width += 2;
+}
+
+void show_all() {
+    if (count == 0) {
+        printf("CMS: No records found.\n");
         return;
     }
 
-    int deleteId;
-    printf("Enter student ID to delete: ");
-    if (scanf("%d", &deleteId) != 1) {
-        printf("CMS: Invalid ID format.\n");
-        while (getchar() != '\n');
-        return;
-    }
-    while (getchar() != '\n');
+    printf("CMS: Here are all the records:\n\n");
 
-    int foundIndex = -1;
-    for (int i = 0; i < g_studentCount; i++) {
-        if (g_students[i].id == deleteId) {
-            foundIndex = i;
-            break;
+    int id_width, name_width, prog_width, mark_width;
+    find_column_widths(&id_width, &name_width, &prog_width, &mark_width);
+
+    printf("%-*s  %-*s  %-*s  %s\n",
+        id_width, "ID", name_width, "Name",
+        prog_width, "Programme", "Mark");
+
+    int total_width = id_width + name_width + prog_width + mark_width + 10;
+    for (int i = 0; i < total_width; i++) printf("=");
+    printf("\n");
+
+    for (int i = 0; i < count; i++) {
+        printf("%-*d  %-*s  %-*s  %.1f\n",
+            id_width, records[i].id,
+            name_width, records[i].name,
+            prog_width, records[i].programme,
+            records[i].mark);
+    }
+
+    printf("\nTotal records: %d\n", count);
+    if (unsaved_changes) {
+        printf("⚠️  Unsaved changes - Use 'SAVE' to save\n");
+    }
+}
+
+void capitalize_words(char* str) {
+    int capitalize_next = 1;
+    for (int i = 0; str[i]; i++) {
+        if (capitalize_next && isalpha(str[i])) {
+            str[i] = toupper(str[i]);
+            capitalize_next = 0;
         }
-    }
-
-    if (foundIndex == -1) {
-        printf("CMS: Record with ID=%d does not exist.\n", deleteId);
-        return;
-    }
-
-    printf("Record to delete: %s, %s, %.1f\n",
-        g_students[foundIndex].name,
-        g_students[foundIndex].programme,
-        g_students[foundIndex].marks);
-
-    char confirmation;
-    printf("Are you sure you want to delete this record? (Y/N): ");
-    scanf(" %c", &confirmation);
-    while (getchar() != '\n');
-
-    if (confirmation == 'Y' || confirmation == 'y') {
-        for (int i = foundIndex; i < g_studentCount - 1; i++) {
-            g_students[i] = g_students[i + 1];
-        }
-        g_studentCount--;
-
-        resyncTempFile();
-        unsavedChanges = 1;
-        printf("CMS: Record with ID=%d was successfully deleted.\n", deleteId);
-    }
-    else {
-        printf("CMS: Deletion cancelled.\n");
-    }
-}
-
-void showAllSorted() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
-        return;
-    }
-
-    if (g_studentCount == 0) {
-        printf("CMS: No student records found.\n");
-        return;
-    }
-
-    Student* sortedArray = (Student*)malloc(g_studentCount * sizeof(Student));
-    if (sortedArray == NULL) {
-        printf("CMS: Memory allocation failed!\n");
-        return;
-    }
-
-    memcpy(sortedArray, g_students, g_studentCount * sizeof(Student));
-
-    printf("\nSort Options: 'ID' or 'Marks'\nEnter your choice: ");
-
-    char input[20];
-    if (fgets(input, sizeof(input), stdin) == NULL) {
-        free(sortedArray);
-        return;
-    }
-    input[strcspn(input, "\n")] = 0;
-    for (int i = 0; input[i]; i++) {
-        input[i] = tolower(input[i]);
-    }
-
-    if (strcmp(input, "id") == 0) {
-        qsort(sortedArray, g_studentCount, sizeof(Student), compareIDDesc);
-        printf("\nStudent Records Sorted by ID (Descending):\n");
-    }
-    else if (strcmp(input, "marks") == 0) {
-        qsort(sortedArray, g_studentCount, sizeof(Student), compareMarksDesc);
-        printf("\nStudent Records Sorted by Marks (Descending):\n");
-    }
-    else {
-        printf("CMS: Invalid choice. Displaying unsorted records.\n");
-    }
-
-    printf("ID          Name                 Programme                Marks\n");
-    printf("-------------------------------------------------------------\n");
-    for (int i = 0; i < g_studentCount; i++) {
-        printf("%-10d %-20s %-23s %.1f\n",
-            sortedArray[i].id, sortedArray[i].name, sortedArray[i].programme, sortedArray[i].marks);
-    }
-
-    free(sortedArray);
-}
-
-void initializeSystem() {
-    printf("=== Class Management System (CMS) ===\n");
-}
-
-void showMainMenu() {
-    int choice;
-    while (1) {
-        printf("\nStudent Management System (File: %s | Records: %d)\n",
-            currentFileName, g_studentCount);
-        if (unsavedChanges) printf("*** UNSAVED CHANGES ***\n");
-
-        printf("1. Show All\n2. Show All w/ Sort\n3. Insert\n4. Query\n5. Update\n");
-        printf("6. Delete\n7. Save Records\n8. Export to CSV\n9. Show Summary Statistics\n10. Exit\n");
-        printf("Enter your choice (1-10): ");
-
-        if (scanf("%d", &choice) != 1) {
-            printf("CMS: Invalid input.\n");
-            while (getchar() != '\n');
-            continue;
-        }
-        while (getchar() != '\n');
-
-        switch (choice) {
-        case 1: viewRecords(); break;
-        case 2: showAllSorted(); break;
-        case 3: insertRecord(); break;
-        case 4: searchQuery(); break;
-        case 5: updateRecord(); break;
-        case 6: deleteRecord(); break;
-        case 7: saveRecords(); break;
-        case 8: exportToCSV(); break;
-        case 9: showSummaryStatistics(); break;
-        case 10:
-            if (unsavedChanges) {
-                char confirm;
-                printf("CMS: Unsaved changes! Exit anyway? (y/n): ");
-                scanf(" %c", &confirm);
-                while (getchar() != '\n');
-                if (confirm != 'y' && confirm != 'Y') continue;
-            }
-            printf("CMS: Goodbye!\n");
-            cleanup();
-            exit(0);
-        default: printf("CMS: Invalid choice.\n");
+        else if (str[i] == ' ') {
+            capitalize_next = 1;
         }
     }
 }
 
-int main() {
-    printf("Declaration\nDeclared by: P7_4\nDate: 25 November 2025\n\n");
-    initializeSystem();
-
-    int choice;
-    while (1) {
-        if (!fileLoaded) {
-            printf("\n--- Main Menu ---\n1. Open File\n2. Exit\nEnter your choice (1-2): ");
-
-            if (scanf("%d", &choice) != 1) {
-                printf("CMS: Invalid input.\n");
-                while (getchar() != '\n');
-                continue;
-            }
-            while (getchar() != '\n');
-
-            switch (choice) {
-            case 1:
-                openFile();
-                if (fileLoaded) {
-                    showMainMenu(); // This is the key line that was missing!
-                }
-                break;
-            case 2:
-                printf("CMS: Goodbye!\n");
-                cleanup();
-                return 0;
-            default:
-                printf("CMS: Invalid choice.\n");
-            }
-        }
-        else {
-            showMainMenu(); // If file is already loaded, show main menu directly
-        }
+int find_student_index(int id) {
+    for (int i = 0; i < count; i++) {
+        if (records[i].id == id) return i;
     }
-    return 0;
+    return -1;
 }
 
-void viewRecords() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
-        return;
-    }
-
-    printf("\nStudent Records from '%s':\n", currentFileName);
-    if (unsavedChanges) {
-        printf("*** Displaying UNSAVED CHANGES (from memory) ***\n");
-    }
-
-    if (g_studentCount == 0) {
-        printf("CMS: No student records found.\n");
-        return;
-    }
-
-    printf("ID          Name                 Programme                Marks\n");
-    printf("-------------------------------------------------------------\n");
-
-    for (int i = 0; i < g_studentCount; i++) {
-        printf("%-10d %-20s %-23s %.1f\n",
-            g_students[i].id,
-            g_students[i].name,
-            g_students[i].programme,
-            g_students[i].marks);
-    }
-}
-
-void saveRecords() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
-        return;
-    }
-
-    if (!unsavedChanges) {
-        printf("CMS: No changes to save.\n");
-        return;
-    }
-
-    FILE* source = fopen(tempFileName, "r");
-    FILE* dest = fopen(currentFileName, "w");
-
-    if (source == NULL || dest == NULL) {
-        printf("CMS: Error: Cannot save records to file.\n");
-        if (source) fclose(source);
-        if (dest) fclose(dest);
-        return;
-    }
-
-    char ch;
-    while ((ch = fgetc(source)) != EOF) {
-        fputc(ch, dest);
-    }
-
-    fclose(source);
-    fclose(dest);
-
-    unsavedChanges = 0;
-    printf("CMS: All changes successfully saved to '%s'\n", currentFileName);
-}
-
-void openFile() {
-    if (unsavedChanges && fileLoaded) {
-        char confirm;
-        printf("\nCMS: You have unsaved changes! Are you sure you want to open a new file? (y/n): ");
-        scanf(" %c", &confirm);
-        while (getchar() != '\n');
-        if (!(confirm == 'y' || confirm == 'Y')) {
-            return;
-        }
-    }
-
-    if (fileLoaded) {
-        cleanup();
-    }
-
-    char filename[100];
-    printf("\n--- Open File ---\n");
-    printf("Enter the filename to open (e.g., students.txt): ");
-    scanf("%99s", filename);
-    while (getchar() != '\n');
-
-    FILE* testFile = fopen(filename, "r");
-    if (testFile == NULL) {
-        printf("CMS: Error: Cannot open file '%s'. File does not exist or cannot be accessed.\n", filename);
-        return;
-    }
-
-    FILE* dest = fopen(tempFileName, "w");
-    if (dest == NULL) {
-        printf("CMS: Error: Could not create temp work file.\n");
-        fclose(testFile);
-        return;
-    }
-
-    char ch;
-    while ((ch = fgetc(testFile)) != EOF) {
-        fputc(ch, dest);
-    }
-
-    fclose(testFile);
-    fclose(dest);
-
-    strcpy(currentFileName, filename);
-    unsavedChanges = 0;
-    fileLoaded = 1;
-
-    loadGlobalStudents();
-    printf("CMS: Successfully opened file '%s'\n", filename);
-    viewRecords();
-}
-
-int checkDuplicateID(int newID) {
-    if (!fileLoaded) {
-        return 0;
-    }
-
-    for (int i = 0; i < g_studentCount; i++) {
-        if (g_students[i].id == newID) {
+int is_duplicate_data(char* name, char* programme, float mark) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(records[i].name, name) == 0 &&
+            strcmp(records[i].programme, programme) == 0 &&
+            records[i].mark == mark) {
             return 1;
         }
     }
     return 0;
 }
 
-void insertRecord() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
+void query_record() {
+    printf("Enter ID to query: ");
+    char id_input[20];
+    fgets(id_input, sizeof(id_input), stdin);
+    id_input[strcspn(id_input, "\n")] = 0;
+
+    if (strlen(id_input) != 7) {
+        printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    int newID;
-    char name[100];
-    char programme[100];
-    float marks;
-    char input[500];
-
-    printf("\n--- Insert New Student Record ---\n");
-    printf("Enter Student Data (Format: ID=number Name=name Programme=programme Mark=marks): ");
-
-    if (fgets(input, sizeof(input), stdin) == NULL) {
-        printf("CMS: Error reading input!\n");
-        return;
-    }
-    input[strcspn(input, "\n")] = 0;
-
-    char tempName[100], tempProgramme[100];
-    int success = 0;
-    char* id_ptr = strstr(input, "ID=");
-    char* name_ptr = strstr(input, "Name=");
-    char* prog_ptr = strstr(input, "Programme=");
-    char* mark_ptr = strstr(input, "Mark=");
-
-    if (id_ptr && name_ptr && prog_ptr && mark_ptr && id_ptr < name_ptr && name_ptr < prog_ptr && prog_ptr < mark_ptr) {
-        id_ptr += 3;
-        name_ptr += 5;
-        prog_ptr += 10;
-        mark_ptr += 5;
-        if (sscanf(id_ptr, "%d", &newID) != 1) goto parse_error;
-        char* name_end = prog_ptr - 10;
-        if (name_end <= name_ptr) goto parse_error;
-        strncpy(name, name_ptr, name_end - name_ptr);
-        name[name_end - name_ptr - 1] = '\0';
-        char* prog_end = mark_ptr - 5;
-        if (prog_end <= prog_ptr) goto parse_error;
-        strncpy(programme, prog_ptr, prog_end - prog_ptr);
-        programme[prog_end - prog_ptr - 1] = '\0';
-        if (sscanf(mark_ptr, "%f", &marks) != 1) goto parse_error;
-        success = 1;
-    }
-    if (!success) {
-        if (sscanf(input, "ID=%d Name=%99s Programme=%99s Mark=%f",
-            &newID, tempName, tempProgramme, &marks) == 4) {
-            strcpy(name, tempName);
-            strcpy(programme, tempProgramme);
-            success = 1;
-        }
-    }
-    if (!success) {
-    parse_error:
-        printf("CMS: Error: Invalid input format!\n");
-        printf("CMS: Expected: ID=number Name=name Programme=programme Mark=marks\n");
-        printf("CMS: Example: ID=1 Name=GuoLai Programme=Grab Food Mark=100.0\n");
-        return;
-    }
-
-    if (marks < 0 || marks > 100) {
-        printf("CMS: Error: Marks must be between 0 and 100!\n");
-        return;
-    }
-
-    if (checkDuplicateID(newID)) {
-        printf("CMS: Error: Student with ID %d already exists! Insertion cancelled.\n", newID);
-        return;
-    }
-
-    if (g_studentCount == g_studentCapacity) {
-        if (g_studentCapacity == 0) {
-            g_studentCapacity = INITIAL_CAPACITY;
-            g_students = (Student*)calloc(g_studentCapacity, sizeof(Student));
-        }
-        else {
-            g_studentCapacity *= 2;
-            Student* temp = (Student*)realloc(g_students, g_studentCapacity * sizeof(Student));
-            if (temp == NULL) {
-                printf("CMS: CRITICAL ERROR: Could not reallocate memory! Insertion failed.\n");
-                return;
-            }
-            g_students = temp;
+    for (int i = 0; i < 7; i++) {
+        if (!isdigit(id_input[i])) {
+            printf("CMS: Error - ID must be digits only.\n");
+            return;
         }
     }
 
-    g_students[g_studentCount].id = newID;
-    strcpy(g_students[g_studentCount].name, name);
-    strcpy(g_students[g_studentCount].programme, programme);
-    g_students[g_studentCount].marks = marks;
-    g_studentCount++;
+    int id = atoi(id_input);
+    int index = find_student_index(id);
 
-    FILE* file = fopen(tempFileName, "a");
-    if (file == NULL) {
-        printf("CMS: Error: Cannot open database file for writing\n");
+    if (index == -1) {
+        printf("CMS: Record with ID=%d not found.\n", id);
         return;
     }
-    fprintf(file, "%d,%s,%s,%.1f\n", newID, name, programme, marks);
-    fclose(file);
 
-    unsavedChanges = 1;
-    printf("CMS: A new record with ID=%d was successfully inserted.\n", newID);
-    printf("CMS: Use 'Save Records' to make changes permanent.\n");
-    viewRecords();
+    printf("CMS: Record found:\n");
+    printf("ID: %d\n", records[index].id);
+    printf("Name: %s\n", records[index].name);
+    printf("Programme: %s\n", records[index].programme);
+    printf("Mark: %.1f\n", records[index].mark);
 }
 
-void searchQuery() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
+void delete_record() {
+    printf("Enter ID to delete: ");
+    char id_input[20];
+    fgets(id_input, sizeof(id_input), stdin);
+    id_input[strcspn(id_input, "\n")] = 0;
+
+    if (strlen(id_input) != 7) {
+        printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    int searchId;
-    printf("Enter student ID to search: ");
-    if (scanf("%d", &searchId) != 1) {
-        printf("CMS: Invalid ID format.\n");
-        while (getchar() != '\n');
-        return;
-    }
-    while (getchar() != '\n');
-
-    int found = 0;
-    for (int i = 0; i < g_studentCount; i++) {
-        if (g_students[i].id == searchId) {
-            printf("CMS: The record with ID=%d is found in the data table.\n", searchId);
-            printf("ID\t\tName\t\tProgramme\t\tMark\n");
-            printf("------------------------------------------------------------\n");
-            printf("%d\t\t%s\t\t%s\t\t%.1f\n",
-                g_students[i].id,
-                g_students[i].name,
-                g_students[i].programme,
-                g_students[i].marks);
-            found = 1;
-            break;
+    for (int i = 0; i < 7; i++) {
+        if (!isdigit(id_input[i])) {
+            printf("CMS: Error - ID must be digits only.\n");
+            return;
         }
     }
 
-    if (!found) {
-        printf("CMS: The record with ID=%d does not exist.\n", searchId);
-    }
-}
+    int id = atoi(id_input);
+    int index = find_student_index(id);
 
-void updateRecord() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
+    if (index == -1) {
+        printf("CMS: Error - ID %d not found.\n", id);
         return;
     }
 
-    int updateId;
-    printf("Enter student ID to update: ");
-    if (scanf("%d", &updateId) != 1) {
-        printf("CMS: Invalid ID format.\n");
-        while (getchar() != '\n');
-        return;
-    }
-    while (getchar() != '\n');
+    printf("\nRecord to delete:\n");
+    printf("ID: %d, Name: %s, Programme: %s, Mark: %.1f\n",
+        records[index].id, records[index].name,
+        records[index].programme, records[index].mark);
 
-    int foundIndex = -1;
-    for (int i = 0; i < g_studentCount; i++) {
-        if (g_students[i].id == updateId) {
-            foundIndex = i;
-            break;
+    printf("Confirm deletion? (yes/no): ");
+    char response[10];
+    fgets(response, sizeof(response), stdin);
+    response[strcspn(response, "\n")] = 0;
+
+    for (int i = 0; response[i]; i++) {
+        response[i] = tolower(response[i]);
+    }
+
+    if (strcmp(response, "yes") == 0 || strcmp(response, "y") == 0) {
+        for (int i = index; i < count - 1; i++) {
+            records[i] = records[i + 1];
         }
-    }
-
-    if (foundIndex == -1) {
-        printf("CMS: Record with ID=%d does not exist.\n", updateId);
-        return;
-    }
-
-    printf("Record found: %s, %s, %.1f\n",
-        g_students[foundIndex].name,
-        g_students[foundIndex].programme,
-        g_students[foundIndex].marks);
-
-    char* input = (char*)malloc(500 * sizeof(char));
-    if (!input) {
-        printf("CMS: Memory allocation failed!\n");
-        return;
-    }
-
-    printf("Enter new data (Name=name Programme=programme Mark=marks) or Enter to cancel: ");
-
-    if (!fgets(input, 500, stdin)) {
-        printf("CMS: Error reading input!\n");
-        free(input);
-        return;
-    }
-    input[strcspn(input, "\n")] = 0;
-
-    if (strlen(input) == 0) {
-        printf("CMS: Update cancelled.\n");
-        free(input);
-        return;
-    }
-
-    char name[100], programme[100];
-    float marks;
-    int success = 0;
-
-    char* name_ptr = strstr(input, "Name=");
-    char* prog_ptr = strstr(input, "Programme=");
-    char* mark_ptr = strstr(input, "Mark=");
-
-    if (name_ptr && prog_ptr && mark_ptr) {
-        name_ptr += 5;
-        prog_ptr += 10;
-        mark_ptr += 5;
-
-        char* name_end = strstr(name_ptr, " Programme=");
-        if (name_end) {
-            strncpy(name, name_ptr, name_end - name_ptr);
-            name[name_end - name_ptr] = '\0';
-
-            char* prog_end = strstr(prog_ptr, " Mark=");
-            if (prog_end) {
-                strncpy(programme, prog_ptr, prog_end - prog_ptr);
-                programme[prog_end - prog_ptr] = '\0';
-
-                char marks_str[50];
-                strncpy(marks_str, mark_ptr, sizeof(marks_str) - 1);
-                marks_str[sizeof(marks_str) - 1] = '\0';
-
-                if (sscanf(marks_str, "%f", &marks) == 1) {
-                    success = 1;
-                }
-            }
-        }
-    }
-
-    if (!success) {
-        printf("CMS: Invalid format! Use: Name=full name Programme=programme name Mark=marks\n");
-        printf("CMS: Example: Name=John Smith Programme=Computer Science Mark=85.5\n");
-        free(input);
-        return;
-    }
-
-    free(input);
-
-    if (marks < 0 || marks > 100) {
-        printf("CMS: Marks must be 0-100!\n");
-        return;
-    }
-
-    char confirmation;
-    printf("\nOLD: %s, %s, %.1f\nNEW: %s, %s, %.1f\nSave changes? (Y/N): ",
-        g_students[foundIndex].name, g_students[foundIndex].programme, g_students[foundIndex].marks,
-        name, programme, marks);
-
-    scanf(" %c", &confirmation);
-    while (getchar() != '\n');
-
-    if (confirmation == 'Y' || confirmation == 'y') {
-        strcpy(g_students[foundIndex].name, name);
-        strcpy(g_students[foundIndex].programme, programme);
-        g_students[foundIndex].marks = marks;
-
-        resyncTempFile();
-        printf("CMS: Record updated. Use 'Save Records' to make permanent.\n");
-        unsavedChanges = 1;
+        count--;
+        unsaved_changes = 1;
+        printf("CMS: Record deleted successfully.\n");
     }
     else {
-        printf("CMS: Update cancelled.\n");
+        printf("CMS: Deletion cancelled.\n");
     }
 }
 
-void showSummaryStatistics() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
+void insert_record() {
+    if (count >= 100) {
+        printf("CMS: Error - Database full.\n");
         return;
     }
 
-    if (g_studentCount == 0) {
-        printf("CMS: No student records found. Cannot generate summary.\n");
+    printf("Enter ID (7 digits): ");
+    char id_input[20];
+    fgets(id_input, sizeof(id_input), stdin);
+    id_input[strcspn(id_input, "\n")] = 0;
+
+    if (strlen(id_input) != 7) {
+        printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    double totalMarks = 0.0;
-    float highestMark = g_students[0].marks;
-    float lowestMark = g_students[0].marks;
-    int highestIndex = 0;
-    int lowestIndex = 0;
-
-    for (int i = 0; i < g_studentCount; i++) {
-        totalMarks += g_students[i].marks;
-
-        if (g_students[i].marks > highestMark) {
-            highestMark = g_students[i].marks;
-            highestIndex = i;
-        }
-
-        if (g_students[i].marks < lowestMark) {
-            lowestMark = g_students[i].marks;
-            lowestIndex = i;
+    for (int i = 0; i < 7; i++) {
+        if (!isdigit(id_input[i])) {
+            printf("CMS: Error - ID must be digits only.\n");
+            return;
         }
     }
 
-    double averageMark = totalMarks / g_studentCount;
+    int id = atoi(id_input);
 
-    printf("\n---------------- Summary Statistics ----------------------\n");
-    printf("Total number of students: %d\n", g_studentCount);
-    printf("Average mark:             %.2f\n", averageMark);
-    printf("Highest mark:             %.1f (Student: %s, ID: %d)\n",
-        g_students[highestIndex].marks,
-        g_students[highestIndex].name,
-        g_students[highestIndex].id);
-    printf("Lowest mark:              %.1f (Student: %s, ID: %d)\n",
-        g_students[lowestIndex].marks,
-        g_students[lowestIndex].name,
-        g_students[lowestIndex].id);
-    printf("-----------------------------------------------------------\n");
+    if (find_student_index(id) != -1) {
+        printf("CMS: Error - ID %d already exists.\n", id);
+        return;
+    }
+
+    printf("Enter Name, Programme, Marks (Format: Name=Full Name, Programme=Programme Name, Marks=XX.X): ");
+    char data_input[300];
+    fgets(data_input, sizeof(data_input), stdin);
+    data_input[strcspn(data_input, "\n")] = 0;
+
+    char name[100] = "", programme[100] = "";
+    float mark;
+
+    // Simple parsing
+    char* name_ptr = strstr(data_input, "Name=");
+    char* prog_ptr = strstr(data_input, "Programme=");
+    char* mark_ptr = strstr(data_input, "Marks=");
+
+    if (!name_ptr || !prog_ptr || !mark_ptr) {
+        printf("CMS: Error - Invalid format.\n");
+        return;
+    }
+
+    // Extract name
+    name_ptr += 5;
+    char* name_end = strstr(name_ptr, ", Programme=");
+    if (name_end) {
+        strncpy(name, name_ptr, name_end - name_ptr);
+        name[name_end - name_ptr] = '\0';
+    }
+
+    // Extract programme
+    prog_ptr += 10;
+    char* prog_end = strstr(prog_ptr, ", Marks=");
+    if (prog_end) {
+        strncpy(programme, prog_ptr, prog_end - prog_ptr);
+        programme[prog_end - prog_ptr] = '\0';
+    }
+
+    // Extract marks
+    mark_ptr += 6;
+    if (sscanf(mark_ptr, "%f", &mark) != 1) {
+        printf("CMS: Error - Invalid marks.\n");
+        return;
+    }
+
+    // Trim spaces
+    for (int i = strlen(name) - 1; i >= 0 && name[i] == ' '; i--) name[i] = '\0';
+    for (int i = strlen(programme) - 1; i >= 0 && programme[i] == ' '; i--) programme[i] = '\0';
+
+    capitalize_words(name);
+    capitalize_words(programme);
+
+    if (mark < 0 || mark > 100) {
+        printf("CMS: Error - Marks must be 0-100.\n");
+        return;
+    }
+
+    if (is_duplicate_data(name, programme, mark)) {
+        printf("CMS: Error - Duplicate record exists.\n");
+        return;
+    }
+
+    records[count].id = id;
+    strcpy(records[count].name, name);
+    strcpy(records[count].programme, programme);
+    records[count].mark = mark;
+    count++;
+    unsaved_changes = 1;
+    printf("CMS: Record inserted successfully.\n");
 }
 
-void exportToCSV() {
-    if (!fileLoaded) {
-        printf("CMS: No file loaded. Please open a file first.\n");
+void update_record() {
+    printf("Enter ID to update: ");
+    char id_input[20];
+    fgets(id_input, sizeof(id_input), stdin);
+    id_input[strcspn(id_input, "\n")] = 0;
+
+    if (strlen(id_input) != 7) {
+        printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    char exportFileName[120];
-
-    printf("\n--- Export Records to CSV ---\n");
-    if (unsavedChanges) {
-        printf("CMS: Note: The CSV will include UNSAVED CHANGES from the current session.\n");
+    for (int i = 0; i < 7; i++) {
+        if (!isdigit(id_input[i])) {
+            printf("CMS: Error - ID must be digits only.\n");
+            return;
+        }
     }
 
-    printf("Enter CSV filename to export to (e.g., records_export.csv): ");
-    if (scanf("%119s", exportFileName) != 1) {
-        printf("CMS: Invalid filename input.\n");
-        while (getchar() != '\n');
-        return;
-    }
-    while (getchar() != '\n');
+    int id = atoi(id_input);
+    int index = find_student_index(id);
 
-    FILE* source = fopen(tempFileName, "r");
-    if (source == NULL) {
-        printf("CMS: Error: Cannot open temporary database file '%s'.\n", tempFileName);
+    if (index == -1) {
+        printf("CMS: Error - ID %d not found.\n", id);
         return;
     }
 
-    FILE* dest = fopen(exportFileName, "w");
-    if (dest == NULL) {
-        printf("CMS: Error: Cannot create CSV file '%s'.\n", exportFileName);
-        fclose(source);
+    printf("\nCurrent record:\n");
+    printf("ID: %d, Name: %s, Programme: %s, Mark: %.1f\n\n",
+        records[index].id, records[index].name,
+        records[index].programme, records[index].mark);
+
+    printf("Enter updated Name, Programme, Marks: ");
+    char data_input[300];
+    fgets(data_input, sizeof(data_input), stdin);
+    data_input[strcspn(data_input, "\n")] = 0;
+
+    char name[100] = "", programme[100] = "";
+    float mark;
+
+    char* name_ptr = strstr(data_input, "Name=");
+    char* prog_ptr = strstr(data_input, "Programme=");
+    char* mark_ptr = strstr(data_input, "Marks=");
+
+    if (!name_ptr || !prog_ptr || !mark_ptr) {
+        printf("CMS: Error - Invalid format.\n");
         return;
     }
 
-    char ch;
-    while ((ch = fgetc(source)) != EOF) {
-        fputc(ch, dest);
+    // Extract data (same as insert)
+    name_ptr += 5;
+    char* name_end = strstr(name_ptr, ", Programme=");
+    if (name_end) {
+        strncpy(name, name_ptr, name_end - name_ptr);
+        name[name_end - name_ptr] = '\0';
     }
 
-    fclose(source);
-    fclose(dest);
+    prog_ptr += 10;
+    char* prog_end = strstr(prog_ptr, ", Marks=");
+    if (prog_end) {
+        strncpy(programme, prog_ptr, prog_end - prog_ptr);
+        programme[prog_end - prog_ptr] = '\0';
+    }
 
-    printf("CMS: Records successfully exported to '%s'.\n", exportFileName);
-    printf("CMS: You can open this file with Excel or other spreadsheet software.\n");
+    mark_ptr += 6;
+    if (sscanf(mark_ptr, "%f", &mark) != 1) {
+        printf("CMS: Error - Invalid marks.\n");
+        return;
+    }
+
+    for (int i = strlen(name) - 1; i >= 0 && name[i] == ' '; i--) name[i] = '\0';
+    for (int i = strlen(programme) - 1; i >= 0 && programme[i] == ' '; i--) programme[i] = '\0';
+
+    capitalize_words(name);
+    capitalize_words(programme);
+
+    if (mark < 0 || mark > 100) {
+        printf("CMS: Error - Marks must be 0-100.\n");
+        return;
+    }
+
+    // Check duplicate
+    char old_name[100], old_prog[100];
+    float old_mark = records[index].mark;
+    strcpy(old_name, records[index].name);
+    strcpy(old_prog, records[index].programme);
+
+    strcpy(records[index].name, name);
+    strcpy(records[index].programme, programme);
+    records[index].mark = mark;
+
+    if (is_duplicate_data(name, programme, mark)) {
+        strcpy(records[index].name, old_name);
+        strcpy(records[index].programme, old_prog);
+        records[index].mark = old_mark;
+        printf("CMS: Error - Duplicate record exists.\n");
+        return;
+    }
+
+    unsaved_changes = 1;
+    printf("CMS: Record updated successfully.\n");
+}
+
+void sort_by_id() {
+    if (count == 0) {
+        printf("No records to sort.\n");
+        return;
+    }
+
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            if (records[j].id > records[j + 1].id) {
+                Student temp = records[j];
+                records[j] = records[j + 1];
+                records[j + 1] = temp;
+            }
+        }
+    }
+    unsaved_changes = 1;
+    printf("Records sorted by ID.\n");
+}
+
+void sort_by_marks() {
+    if (count == 0) {
+        printf("No records to sort.\n");
+        return;
+    }
+
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            if (records[j].mark < records[j + 1].mark) {
+                Student temp = records[j];
+                records[j] = records[j + 1];
+                records[j + 1] = temp;
+            }
+        }
+    }
+    unsaved_changes = 1;
+    printf("Records sorted by marks.\n");
+}
+
+void show_help() {
+    printf("\n=== Available Commands ===\n");
+    printf("SHOW ALL    - Display all student records\n");
+    printf("QUERY       - Search for a record by ID\n");
+    printf("INSERT      - Add a new student record\n");
+    printf("UPDATE      - Update an existing record\n");
+    printf("DELETE      - Delete a record by ID\n");
+    printf("SORT ID     - Sort records by ID (ascending)\n");
+    printf("SORT MARKS  - Sort records by marks (descending)\n");
+    printf("SAVE        - Save all changes to file\n");
+    printf("HELP        - Show this help message\n");
+    printf("EXIT        - Quit the program\n");
+    printf("==========================\n\n");
+}
+
+int confirm_exit() {
+    if (unsaved_changes) {
+        printf("\n⚠️  Unsaved changes! Exit without saving? (yes/no): ");
+        char response[10];
+        fgets(response, sizeof(response), stdin);
+        response[strcspn(response, "\n")] = 0;
+
+        for (int i = 0; response[i]; i++) {
+            response[i] = tolower(response[i]);
+        }
+
+        if (strcmp(response, "yes") == 0 || strcmp(response, "y") == 0) {
+            return 1;
+        }
+        else {
+            printf("Exit cancelled.\n");
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void to_lowercase(char* str) {
+    for (int i = 0; str[i]; i++) {
+        str[i] = tolower(str[i]);
+    }
+}
+
+int main() {
+    char command[50];
+    char lower_command[50];
+
+    load_data_from_file();
+
+    printf("Student Records System started.\n");
+    printf("Team_P7_4-CMS.txt loaded.\n\n");
+    printf("Type HELP for a list of available commands\n\n");
+
+    while (1) {
+        printf("Enter command: ");
+        fgets(command, sizeof(command), stdin);
+        command[strcspn(command, "\n")] = 0;
+
+        strcpy(lower_command, command);
+        to_lowercase(lower_command);
+
+        if (strcmp(lower_command, "show all") == 0) {
+            show_all();
+        }
+        else if (strcmp(lower_command, "query") == 0) {
+            query_record();
+        }
+        else if (strcmp(lower_command, "insert") == 0) {
+            insert_record();
+        }
+        else if (strcmp(lower_command, "update") == 0) {
+            update_record();
+        }
+        else if (strcmp(lower_command, "delete") == 0) {
+            delete_record();
+        }
+        else if (strcmp(lower_command, "sort id") == 0) {
+            sort_by_id();
+        }
+        else if (strcmp(lower_command, "sort marks") == 0) {
+            sort_by_marks();
+        }
+        else if (strcmp(lower_command, "save") == 0) {
+            save_data_to_file();
+        }
+        else if (strcmp(lower_command, "help") == 0) {
+            show_help();
+        }
+        else if (strcmp(lower_command, "exit") == 0) {
+            if (confirm_exit()) {
+                printf("Goodbye!\n");
+                break;
+            }
+        }
+        else {
+            printf("Unknown command. Type HELP for available commands.\n");
+        }
+
+        printf("\n");
+    }
+
+    return 0;
 }
