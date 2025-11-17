@@ -1,4 +1,33 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿/***************************************************************
+ * Declaration
+ * SIT’s policy on copying does not allow the students to copy
+ * source code as well as assessment solutions from another
+ * person AI or other places. It is the students’ responsibility
+ * to guarantee that their assessment solutions are their own
+ * work. Meanwhile, the students must also ensure that their
+ * work is not accessible by others. Where such plagiarism is
+ * detected, both of the assessments involved will receive ZERO
+ * mark.
+ *
+ * We hereby declare that:
+ * • We fully understand and agree to the abovementioned plagiarism policy.
+ * • We did not copy any code from others or from other places.
+ * • We did not share our codes with others or upload to any other places for public access and will not do that in the future.
+ * • We agree that our project will receive Zero mark if there is any plagiarism detected.
+ * • We agree that we will not disclose any information or material of the group project to others or upload to any other places for public access.
+ * • We agree that we did not copy any code directly from AI generated sources
+ *
+ * Declared by: P7_4
+ * Team members:
+ * 1. XXX
+ * 2. XXX
+ * 3. XXX
+ * 4. XXX
+ * 5. XXX
+ * Date: 24 November 2024
+ ***************************************************************/
+
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -14,6 +43,7 @@ typedef struct {
 Student records[100];
 int count = 0;
 int unsaved_changes = 0;
+int file_opened = 0; // Track if file has been opened
 
 void load_data_from_file() {
     FILE* file = fopen("Team_P7_4-CMS.txt", "r");
@@ -73,9 +103,15 @@ void load_data_from_file() {
     }
 
     fclose(file);
+    file_opened = 1; // Mark file as opened
 }
 
 void save_data_to_file() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     FILE* file = fopen("Team_P7_4-CMS.txt", "w");
     if (!file) {
         printf("Error: Cannot save to Team_P7_4-CMS.txt\n");
@@ -120,6 +156,11 @@ void find_column_widths(int* id_width, int* name_width, int* prog_width, int* ma
 }
 
 void show_all() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     if (count == 0) {
         printf("CMS: No records found.\n");
         return;
@@ -184,6 +225,11 @@ int is_duplicate_data(char* name, char* programme, float mark) {
 }
 
 void query_record() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     printf("Enter ID to query: ");
     char id_input[20];
     fgets(id_input, sizeof(id_input), stdin);
@@ -217,6 +263,11 @@ void query_record() {
 }
 
 void delete_record() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     printf("Enter ID to delete: ");
     char id_input[20];
     fgets(id_input, sizeof(id_input), stdin);
@@ -270,6 +321,11 @@ void delete_record() {
 }
 
 void insert_record() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     if (count >= 100) {
         printf("CMS: Error - Database full.\n");
         return;
@@ -367,6 +423,11 @@ void insert_record() {
 }
 
 void update_record() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     printf("Enter ID to update: ");
     char id_input[20];
     fgets(id_input, sizeof(id_input), stdin);
@@ -469,6 +530,11 @@ void update_record() {
 }
 
 void sort_by_id() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     if (count == 0) {
         printf("No records to sort.\n");
         return;
@@ -488,6 +554,11 @@ void sort_by_id() {
 }
 
 void sort_by_marks() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
     if (count == 0) {
         printf("No records to sort.\n");
         return;
@@ -508,6 +579,9 @@ void sort_by_marks() {
 
 void show_help() {
     printf("\n=== Available Commands ===\n");
+    if (!file_opened) {
+        printf("OPEN        - Open the student records file\n");
+    }
     printf("SHOW ALL    - Display all student records\n");
     printf("QUERY       - Search for a record by ID\n");
     printf("INSERT      - Add a new student record\n");
@@ -549,25 +623,38 @@ void to_lowercase(char* str) {
     }
 }
 
+void open_file() {
+    if (file_opened) {
+        printf("CMS: File is already opened.\n");
+        return;
+    }
+
+    load_data_from_file();
+    if (file_opened) {
+        printf("CMS: Team_P7_4-CMS.txt opened successfully.\n");
+        printf("CMS: %d records loaded.\n", count);
+    }
+}
+
 int main() {
     char command[50];
     char lower_command[50];
 
-    load_data_from_file();
-
-    printf("Student Records System started.\n");
-    printf("Team_P7_4-CMS.txt loaded.\n\n");
+    printf("Student Records System started.\n\n");
     printf("Type HELP for a list of available commands\n\n");
 
     while (1) {
-        printf("Enter command: ");
+        printf("P7_4: ");
         fgets(command, sizeof(command), stdin);
         command[strcspn(command, "\n")] = 0;
 
         strcpy(lower_command, command);
         to_lowercase(lower_command);
 
-        if (strcmp(lower_command, "show all") == 0) {
+        if (strcmp(lower_command, "open") == 0) {
+            open_file();
+        }
+        else if (strcmp(lower_command, "show all") == 0) {
             show_all();
         }
         else if (strcmp(lower_command, "query") == 0) {
