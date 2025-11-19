@@ -24,7 +24,7 @@
  * 3. XXX
  * 4. XXX
  * 5. XXX
- * Date: 24 November 2024
+ * Date: 24 November 2025
  ***************************************************************/
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -44,6 +44,47 @@ Student records[100];
 int count = 0;
 int unsaved_changes = 0;
 int file_opened = 0; // Track if file has been opened
+
+// Helper function to convert a string to lowercase
+void to_lowercase(char* str) {
+    for (int i = 0; str[i]; i++) {
+        str[i] = tolower(str[i]);
+    }
+}
+
+// Helper function to trim leading spaces from a string
+void trim_leading_spaces(char* str) {
+    if (str == NULL || *str == '\0') {
+        return;
+    }
+    char* start = str;
+    while (*start == ' ') {
+        start++;
+    }
+    if (start != str) {
+        // Move the non-space characters to the start of the string
+        memmove(str, start, strlen(start) + 1);
+    }
+}
+
+/**
+ * NEW HELPER FUNCTION: Checks if the first two digits of the ID are valid (21-25).
+ */
+int is_valid_id_prefix(const char* id_str) {
+    if (strlen(id_str) < 2) {
+        return 0; // Not enough digits
+    }
+    char prefix_str[3];
+    strncpy(prefix_str, id_str, 2);
+    prefix_str[2] = '\0';
+    int prefix = atoi(prefix_str);
+
+    // Check if the prefix is in the valid range [21, 25]
+    if (prefix >= 21 && prefix <= 25) {
+        return 1;
+    }
+    return 0;
+}
 
 void load_data_from_file() {
     FILE* file = fopen("Team_P7_4-CMS.txt", "r");
@@ -77,8 +118,9 @@ void load_data_from_file() {
 
         token = strtok(temp_line, ",");
         while (token != NULL) {
-            // Remove spaces
+            // Remove leading spaces
             while (*token == ' ') token++;
+            // Remove trailing spaces
             char* end = token + strlen(token) - 1;
             while (end > token && *end == ' ') *end-- = '\0';
 
@@ -203,6 +245,9 @@ void capitalize_words(char* str) {
         else if (str[i] == ' ') {
             capitalize_next = 1;
         }
+        else if (isalpha(str[i])) {
+            str[i] = tolower(str[i]);
+        }
     }
 }
 
@@ -224,30 +269,91 @@ int is_duplicate_data(char* name, char* programme, float mark) {
     return 0;
 }
 
-void query_record() {
+// Helper function to extract and clean values (used in insert_record)
+void extract_and_clean(char* start_ptr, char* end_ptr, char* destination) {
+    if (end_ptr == NULL) end_ptr = start_ptr + strlen(start_ptr); // Read to end if no terminator
+    int len = end_ptr - start_ptr;
+    if (len < 0) len = 0; // Safety check
+
+    // Copy only the required length
+    strncpy(destination, start_ptr, len);
+    destination[len] = '\0';
+
+    // Trim leading spaces
+    trim_leading_spaces(destination);
+
+    // Trim trailing spaces/commas (though comma shouldn't be an issue with key=value format)
+    int i = strlen(destination) - 1;
+    while (i >= 0 && (destination[i] == ' ' || destination[i] == ',')) {
+        destination[i] = '\0';
+        i--;
+    }
+}
+
+// Helper function to find the next valid field start point after a given key
+char* find_next_key(char* current_key_start, char* base_input) {
+    char* next_key = NULL;
+    char* name_end = strstr(current_key_start + 1, "Name=");
+    char* prog_end = strstr(current_key_start + 1, "Programme=");
+    char* mark_end = strstr(current_key_start + 1, "Mark=");
+    char* id_end = strstr(current_key_start + 1, "ID=");
+
+    // Find the earliest occurrence of another key after the current key's starting position
+    if (name_end != NULL) next_key = (next_key == NULL || name_end < next_key) ? name_end : next_key;
+    if (prog_end != NULL) next_key = (next_key == NULL || prog_end < next_key) ? prog_end : next_key;
+    if (mark_end != NULL) next_key = (next_key == NULL || mark_end < next_key) ? mark_end : next_key;
+    if (id_end != NULL) next_key = (next_key == NULL || id_end < next_key) ? id_end : next_key;
+
+    return next_key;
+}
+
+/**
+ * FIX: Modified to accept the ID from the command line argument string and remove the prompt.
+ * Format: "QUERY ID=2401234"
+ */
+void query_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
     }
 
-    printf("Enter ID to query: ");
-    char id_input[20];
-    fgets(id_input, sizeof(id_input), stdin);
-    id_input[strcspn(id_input, "\n")] = 0;
+    // Check if ID was provided
+    if (strlen(input) == 0) {
+        printf("CMS: Error - Missing ID. Format: QUERY ID=7-digits\n");
+        return;
+    }
 
-    if (strlen(id_input) != 7) {
+    char temp_input[300];
+    strcpy(temp_input, input);
+
+    // --- Extract ID ---
+    char* id_ptr = strstr(temp_input, "ID=");
+    if (!id_ptr) {
+        printf("CMS: Error - Format must include 'ID=7-digits'.\n");
+        return;
+    }
+    id_ptr += 3; // Move past "ID="
+
+    char id_str[8] = "";
+    // Extract exactly 7 digits
+    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) {
+        id_str[i] = id_ptr[i];
+    }
+    id_str[7] = '\0';
+
+    if (strlen(id_str) != 7) {
         printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    for (int i = 0; i < 7; i++) {
-        if (!isdigit(id_input[i])) {
-            printf("CMS: Error - ID must be digits only.\n");
-            return;
-        }
+    // Check for non-digit characters immediately following the 7 digits (only if ID is not the last argument)
+    if (strlen(id_ptr) > 7 && !isspace(id_ptr[7]) && id_ptr[7] != '\0') {
+        printf("CMS: Error - ID must be digits only.\n");
+        return;
     }
 
-    int id = atoi(id_input);
+
+    int id = atoi(id_str);
     int index = find_student_index(id);
 
     if (index == -1) {
@@ -262,30 +368,52 @@ void query_record() {
     printf("Mark: %.1f\n", records[index].mark);
 }
 
-void delete_record() {
+/**
+ * FIX: Modified to accept the ID from the command line argument string and remove the prompt.
+ * Format: "DELETE ID=2401234"
+ */
+void delete_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
     }
 
-    printf("Enter ID to delete: ");
-    char id_input[20];
-    fgets(id_input, sizeof(id_input), stdin);
-    id_input[strcspn(id_input, "\n")] = 0;
+    // Check if ID was provided
+    if (strlen(input) == 0) {
+        printf("CMS: Error - Missing ID. Format: DELETE ID=7-digits\n");
+        return;
+    }
 
-    if (strlen(id_input) != 7) {
+    char temp_input[300];
+    strcpy(temp_input, input);
+
+    // --- Extract ID ---
+    char* id_ptr = strstr(temp_input, "ID=");
+    if (!id_ptr) {
+        printf("CMS: Error - Format must include 'ID=7-digits'.\n");
+        return;
+    }
+    id_ptr += 3; // Move past "ID="
+
+    char id_str[8] = "";
+    // Extract exactly 7 digits
+    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) {
+        id_str[i] = id_ptr[i];
+    }
+    id_str[7] = '\0';
+
+    if (strlen(id_str) != 7) {
         printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    for (int i = 0; i < 7; i++) {
-        if (!isdigit(id_input[i])) {
-            printf("CMS: Error - ID must be digits only.\n");
-            return;
-        }
+    // Check for non-digit characters immediately following the 7 digits (only if ID is not the last argument)
+    if (strlen(id_ptr) > 7 && !isspace(id_ptr[7]) && id_ptr[7] != '\0') {
+        printf("CMS: Error - ID must be digits only.\n");
+        return;
     }
 
-    int id = atoi(id_input);
+    int id = atoi(id_str);
     int index = find_student_index(id);
 
     if (index == -1) {
@@ -320,7 +448,12 @@ void delete_record() {
     }
 }
 
-void insert_record() {
+
+/**
+ * FIX: Modified to accept the arguments from the command line and remove all prompts.
+ * Format: "ID=2401234 Name=Michelle Lee Programme=Information Security Mark=73.2"
+ */
+void insert_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
@@ -331,83 +464,105 @@ void insert_record() {
         return;
     }
 
-    printf("Enter ID (7 digits): ");
-    char id_input[20];
-    fgets(id_input, sizeof(id_input), stdin);
-    id_input[strcspn(id_input, "\n")] = 0;
+    // Check if input arguments were provided
+    if (strlen(input) == 0) {
+        printf("CMS: Error - Missing insert data. Format: INSERT ID=... Name=... Programme=... Mark=...\n");
+        return;
+    }
 
-    if (strlen(id_input) != 7) {
+    char temp_input[300];
+    strcpy(temp_input, input);
+
+    char name[100] = "", programme[100] = "";
+    float mark = -1.0;
+    int id = 0;
+
+    // --- 1. Extract ID ---
+    char* id_ptr = strstr(temp_input, "ID=");
+    if (!id_ptr) {
+        printf("CMS: Error - Missing required field: ID.\n");
+        return;
+    }
+    id_ptr += 3; // Move past "ID="
+
+    char id_str[8] = "";
+    // Loop to extract ID characters (stop at first non-digit or end of string)
+    int i = 0;
+    while (i < 7 && isdigit(id_ptr[i])) {
+        id_str[i] = id_ptr[i];
+        i++;
+    }
+    id_str[i] = '\0'; // Null-terminate at the end of the digits found
+
+    if (strlen(id_str) != 7) {
         printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    for (int i = 0; i < 7; i++) {
-        if (!isdigit(id_input[i])) {
-            printf("CMS: Error - ID must be digits only.\n");
-            return;
-        }
+    // **NEW VALIDATION: Check ID Prefix**
+    if (!is_valid_id_prefix(id_str)) {
+        printf("CMS: Error - ID prefix must be 21, 22, 23, 24, or 25.\n");
+        return;
     }
+    // **END NEW VALIDATION**
 
-    int id = atoi(id_input);
+    id = atoi(id_str);
 
     if (find_student_index(id) != -1) {
         printf("CMS: Error - ID %d already exists.\n", id);
         return;
     }
 
-    printf("Enter Name, Programme, Marks (Format: Name=Full Name, Programme=Programme Name, Marks=XX.X): ");
-    char data_input[300];
-    fgets(data_input, sizeof(data_input), stdin);
-    data_input[strcspn(data_input, "\n")] = 0;
+    // --- 2. Extract Name, Programme, Marks ---
+    char* name_start = strstr(temp_input, "Name=");
+    char* prog_start = strstr(temp_input, "Programme=");
+    char* mark_start = strstr(temp_input, "Mark=");
 
-    char name[100] = "", programme[100] = "";
-    float mark;
-
-    // Simple parsing
-    char* name_ptr = strstr(data_input, "Name=");
-    char* prog_ptr = strstr(data_input, "Programme=");
-    char* mark_ptr = strstr(data_input, "Marks=");
-
-    if (!name_ptr || !prog_ptr || !mark_ptr) {
-        printf("CMS: Error - Invalid format.\n");
+    if (!name_start || !prog_start || !mark_start) {
+        printf("CMS: Error - Missing one or more required fields (Name, Programme, Mark).\n");
         return;
     }
 
-    // Extract name
-    name_ptr += 5;
-    char* name_end = strstr(name_ptr, ", Programme=");
-    if (name_end) {
-        strncpy(name, name_ptr, name_end - name_ptr);
-        name[name_end - name_ptr] = '\0';
+    // 1. Extract Name
+    if (name_start) {
+        char* name_val_start = name_start + 5;
+        char* name_stop = find_next_key(name_start, temp_input);
+        extract_and_clean(name_val_start, name_stop, name);
     }
 
-    // Extract programme
-    prog_ptr += 10;
-    char* prog_end = strstr(prog_ptr, ", Marks=");
-    if (prog_end) {
-        strncpy(programme, prog_ptr, prog_end - prog_ptr);
-        programme[prog_end - prog_ptr] = '\0';
+    // 2. Extract Programme
+    if (prog_start) {
+        char* prog_val_start = prog_start + 10;
+        char* prog_stop = find_next_key(prog_start, temp_input);
+        extract_and_clean(prog_val_start, prog_stop, programme);
     }
 
-    // Extract marks
-    mark_ptr += 6;
-    if (sscanf(mark_ptr, "%f", &mark) != 1) {
-        printf("CMS: Error - Invalid marks.\n");
+    // 3. Extract Marks
+    // Mark= is 5 characters
+    if (mark_start && sscanf(mark_start + 5, "%f", &mark) != 1) {
+        printf("CMS: Error - Mark field missing or invalid.\n");
         return;
     }
 
-    // Trim spaces
-    for (int i = strlen(name) - 1; i >= 0 && name[i] == ' '; i--) name[i] = '\0';
-    for (int i = strlen(programme) - 1; i >= 0 && programme[i] == ' '; i--) programme[i] = '\0';
-
-    capitalize_words(name);
-    capitalize_words(programme);
-
-    if (mark < 0 || mark > 100) {
+    // Final checks
+    if (strlen(name) == 0) {
+        printf("CMS: Error - Name value missing.\n");
+        return;
+    }
+    if (strlen(programme) == 0) {
+        printf("CMS: Error - Programme value missing.\n");
+        return;
+    }
+    if (mark < 0.0 || mark > 100.0) {
         printf("CMS: Error - Marks must be 0-100.\n");
         return;
     }
 
+    // --- Capitalization ---
+    capitalize_words(name);
+    capitalize_words(programme);
+
+    // --- Validation and Insertion ---
     if (is_duplicate_data(name, programme, mark)) {
         printf("CMS: Error - Duplicate record exists.\n");
         return;
@@ -422,112 +577,178 @@ void insert_record() {
     printf("CMS: Record inserted successfully.\n");
 }
 
-void update_record() {
+
+/**
+ * update_record function signature:
+ * Accepts the entire command line *after* the "UPDATE" keyword.
+ * Example: "ID=2401234 Mark=69.8"
+ */
+void update_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
     }
 
-    printf("Enter ID to update: ");
-    char id_input[20];
-    fgets(id_input, sizeof(id_input), stdin);
-    id_input[strcspn(id_input, "\n")] = 0;
+    char temp_input[300];
+    strcpy(temp_input, input);
 
-    if (strlen(id_input) != 7) {
+    // 1. Extract ID
+    char* id_ptr = strstr(temp_input, "ID=");
+    if (!id_ptr) {
+        printf("CMS: Error - Format must include 'ID=7-digits' and an updated field.\n");
+        return;
+    }
+    id_ptr += 3; // Move past "ID="
+
+    char id_str[8] = "";
+    // Extract exactly 7 digits
+    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) {
+        id_str[i] = id_ptr[i];
+    }
+    id_str[7] = '\0';
+
+    if (strlen(id_str) != 7) {
         printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
 
-    for (int i = 0; i < 7; i++) {
-        if (!isdigit(id_input[i])) {
-            printf("CMS: Error - ID must be digits only.\n");
+    // **NEW VALIDATION: Check ID Prefix**
+    // NOTE: For UPDATE, we only need to check the prefix if we were allowing ID to be updated,
+    // but the ID field itself is used for locating the record and is typically not updated.
+    // However, if the logic were to allow an ID update (which is not implemented here), 
+    // the check would be necessary. We skip the prefix check here since the ID is only
+    // used to find an existing record.
+    // We will leave the prefix check out of UPDATE as per common database logic (ID is key), 
+    // but if the intent was to ensure IDs *already in the system* satisfy the rule (which they should 
+    // if INSERT enforces it), that would be a separate validation on load.
+    // For now, we only apply the requested check to the INSERT command.
+
+    int id = atoi(id_str);
+    int index = find_student_index(id);
+
+    if (index == -1) {
+        printf("CMS: The record with ID=%d does not exist.\n", id);
+        return;
+    }
+
+    // 2. Identify and extract the updated field
+    char* mark_ptr = strstr(temp_input, "Mark=");
+    char* name_ptr = strstr(temp_input, "Name=");
+    char* prog_ptr = strstr(temp_input, "Programme=");
+
+    if (!mark_ptr && !name_ptr && !prog_ptr) {
+        printf("CMS: Error - Must specify a field to update (Mark, Name, or Programme).\n");
+        return;
+    }
+
+    // Preserve old data for duplicate check and error revert
+    char new_name[100], new_prog[100];
+    float new_mark;
+
+    strcpy(new_name, records[index].name);
+    strcpy(new_prog, records[index].programme);
+    new_mark = records[index].mark;
+
+    int update_made = 0;
+
+    // --- Update Mark ---
+    if (mark_ptr) {
+        mark_ptr += 5; // Move past "Mark="
+        float mark_val;
+        if (sscanf(mark_ptr, "%f", &mark_val) == 1) {
+            if (mark_val >= 0 && mark_val <= 100) {
+                new_mark = mark_val;
+                update_made = 1;
+                printf("CMS: The record with ID=%d is successfully updated.\n", id);
+            }
+            else {
+                printf("CMS: Error - Mark must be between 0 and 100.\n");
+                return;
+            }
+        }
+        else {
+            printf("CMS: Error - Invalid Mark value.\n");
             return;
         }
     }
 
-    int id = atoi(id_input);
-    int index = find_student_index(id);
+    // --- Update Programme ---
+    if (prog_ptr) {
+        prog_ptr += 10; // Move past "Programme="
+        char* prog_val_start = prog_ptr;
+        char temp_prog[100];
 
-    if (index == -1) {
-        printf("CMS: Error - ID %d not found.\n", id);
+        char* prog_stop = find_next_key(prog_ptr - 10, temp_input); // find_next_key needs the start of the key-value pair, -10 moves back to "Programme="
+        extract_and_clean(prog_val_start, prog_stop, temp_prog);
+
+        if (strlen(temp_prog) > 0) {
+            capitalize_words(temp_prog);
+            strcpy(new_prog, temp_prog);
+            update_made = 1;
+            printf("CMS: The record with ID=%d is successfully updated.\n", id);
+        }
+        else {
+            printf("CMS: Error - Invalid Programme value.\n");
+            return;
+        }
+    }
+
+    // --- Update Name ---
+    if (name_ptr) {
+        name_ptr += 5; // Move past "Name="
+        char* name_val_start = name_ptr;
+        char temp_name[100];
+
+        char* name_stop = find_next_key(name_ptr - 5, temp_input); // find_next_key needs the start of the key-value pair, -5 moves back to "Name="
+        extract_and_clean(name_val_start, name_stop, temp_name);
+
+        if (strlen(temp_name) > 0) {
+            capitalize_words(temp_name);
+            strcpy(new_name, temp_name);
+            update_made = 1;
+            printf("CMS: The record with ID=%d is successfully updated.\n", id);
+        }
+        else {
+            printf("CMS: Error - Invalid Name value.\n");
+            return;
+        }
+    }
+
+    if (!update_made) {
+        // This case should be mostly covered by the earlier checks, but as a fallback:
+        printf("CMS: No valid fields were provided for update.\n");
         return;
     }
 
-    printf("\nCurrent record:\n");
-    printf("ID: %d, Name: %s, Programme: %s, Mark: %.1f\n\n",
-        records[index].id, records[index].name,
-        records[index].programme, records[index].mark);
+    // 3. Final Validation (Duplicate Check)
+    // Temporarily apply the update for duplicate check
+    Student original_record = records[index]; // Save original
+    strcpy(records[index].name, new_name);
+    strcpy(records[index].programme, new_prog);
+    records[index].mark = new_mark;
 
-    printf("Enter updated Name, Programme, Marks: ");
-    char data_input[300];
-    fgets(data_input, sizeof(data_input), stdin);
-    data_input[strcspn(data_input, "\n")] = 0;
+    // Check for duplicates (excluding the current record's original data)
+    int is_dup = 0;
+    for (int i = 0; i < count; i++) {
+        if (i != index && strcmp(records[i].name, new_name) == 0 &&
+            strcmp(records[i].programme, new_prog) == 0 &&
+            records[i].mark == new_mark) {
+            is_dup = 1;
+            break;
+        }
+    }
 
-    char name[100] = "", programme[100] = "";
-    float mark;
-
-    char* name_ptr = strstr(data_input, "Name=");
-    char* prog_ptr = strstr(data_input, "Programme=");
-    char* mark_ptr = strstr(data_input, "Marks=");
-
-    if (!name_ptr || !prog_ptr || !mark_ptr) {
-        printf("CMS: Error - Invalid format.\n");
+    if (is_dup) {
+        // Revert changes if duplicate found
+        records[index] = original_record;
+        printf("CMS: Error - Duplicate record exists after update.\n");
         return;
     }
 
-    // Extract data (same as insert)
-    name_ptr += 5;
-    char* name_end = strstr(name_ptr, ", Programme=");
-    if (name_end) {
-        strncpy(name, name_ptr, name_end - name_ptr);
-        name[name_end - name_ptr] = '\0';
-    }
-
-    prog_ptr += 10;
-    char* prog_end = strstr(prog_ptr, ", Marks=");
-    if (prog_end) {
-        strncpy(programme, prog_ptr, prog_end - prog_ptr);
-        programme[prog_end - prog_ptr] = '\0';
-    }
-
-    mark_ptr += 6;
-    if (sscanf(mark_ptr, "%f", &mark) != 1) {
-        printf("CMS: Error - Invalid marks.\n");
-        return;
-    }
-
-    for (int i = strlen(name) - 1; i >= 0 && name[i] == ' '; i--) name[i] = '\0';
-    for (int i = strlen(programme) - 1; i >= 0 && programme[i] == ' '; i--) programme[i] = '\0';
-
-    capitalize_words(name);
-    capitalize_words(programme);
-
-    if (mark < 0 || mark > 100) {
-        printf("CMS: Error - Marks must be 0-100.\n");
-        return;
-    }
-
-    // Check duplicate
-    char old_name[100], old_prog[100];
-    float old_mark = records[index].mark;
-    strcpy(old_name, records[index].name);
-    strcpy(old_prog, records[index].programme);
-
-    strcpy(records[index].name, name);
-    strcpy(records[index].programme, programme);
-    records[index].mark = mark;
-
-    if (is_duplicate_data(name, programme, mark)) {
-        strcpy(records[index].name, old_name);
-        strcpy(records[index].programme, old_prog);
-        records[index].mark = old_mark;
-        printf("CMS: Error - Duplicate record exists.\n");
-        return;
-    }
-
+    // The update is applied; set the flag
     unsaved_changes = 1;
-    printf("CMS: Record updated successfully.\n");
 }
+
 
 void sort_by_id() {
     if (!file_opened) {
@@ -540,6 +761,7 @@ void sort_by_id() {
         return;
     }
 
+    // Bubble sort by ID (ascending)
     for (int i = 0; i < count - 1; i++) {
         for (int j = 0; j < count - i - 1; j++) {
             if (records[j].id > records[j + 1].id) {
@@ -564,6 +786,7 @@ void sort_by_marks() {
         return;
     }
 
+    // Bubble sort by marks (descending)
     for (int i = 0; i < count - 1; i++) {
         for (int j = 0; j < count - i - 1; j++) {
             if (records[j].mark < records[j + 1].mark) {
@@ -580,13 +803,13 @@ void sort_by_marks() {
 void show_help() {
     printf("\n=== Available Commands ===\n");
     if (!file_opened) {
-        printf("OPEN        - Open the student records file\n");
+        printf("OPEN          - Open the student records file\n");
     }
     printf("SHOW ALL    - Display all student records\n");
-    printf("QUERY       - Search for a record by ID\n");
-    printf("INSERT      - Add a new student record\n");
-    printf("UPDATE      - Update an existing record\n");
-    printf("DELETE      - Delete a record by ID\n");
+    printf("QUERY ID=...  - Search for a record by ID\n");
+    printf("INSERT ID=... Name=... Programme=... Mark=... - Add a new record\n");
+    printf("UPDATE ID=... Mark/Name/Programme=... - Update an existing record\n");
+    printf("DELETE ID=... - Delete a record by ID (prompts for confirmation)\n");
     printf("SORT ID     - Sort records by ID (ascending)\n");
     printf("SORT MARKS  - Sort records by marks (descending)\n");
     printf("SAVE        - Save all changes to file\n");
@@ -617,12 +840,6 @@ int confirm_exit() {
     return 1;
 }
 
-void to_lowercase(char* str) {
-    for (int i = 0; str[i]; i++) {
-        str[i] = tolower(str[i]);
-    }
-}
-
 void open_file() {
     if (file_opened) {
         printf("CMS: File is already opened.\n");
@@ -637,6 +854,7 @@ void open_file() {
 }
 
 int main() {
+    char command_line[300];
     char command[50];
     char lower_command[50];
 
@@ -645,35 +863,83 @@ int main() {
 
     while (1) {
         printf("P7_4: ");
-        fgets(command, sizeof(command), stdin);
-        command[strcspn(command, "\n")] = 0;
+        // Read the entire line of input
+        fgets(command_line, sizeof(command_line), stdin);
+        command_line[strcspn(command_line, "\n")] = 0;
 
+        // Use a temporary copy for tokenizing (since strtok modifies the string)
+        char temp_line[300];
+        strcpy(temp_line, command_line);
+
+        // --- 1. Extract the Command Token ---
+        char* token = strtok(temp_line, " ");
+        if (token == NULL) {
+            printf("\n");
+            continue; // Empty line
+        }
+
+        // Save the command and convert to lowercase
+        strcpy(command, token);
         strcpy(lower_command, command);
         to_lowercase(lower_command);
 
+        // --- 2. Find the start of the Arguments in the original line ---
+        char* args_start = command_line + strlen(command);
+        // Skip any immediate spaces after the command word
+        while (*args_start == ' ') {
+            args_start++;
+        }
+
+        // --- 3. Command Handling ---
         if (strcmp(lower_command, "open") == 0) {
             open_file();
         }
-        else if (strcmp(lower_command, "show all") == 0) {
-            show_all();
+        else if (strcmp(lower_command, "show") == 0) {
+            if (strcmp(args_start, "all") == 0) {
+                show_all();
+            }
+            else {
+                printf("Unknown command. Type HELP for available commands.\n");
+            }
         }
         else if (strcmp(lower_command, "query") == 0) {
-            query_record();
+            // Pass arguments directly to query_record
+            query_record(args_start);
         }
         else if (strcmp(lower_command, "insert") == 0) {
-            insert_record();
+            // Pass arguments directly to insert_record
+            insert_record(args_start);
         }
         else if (strcmp(lower_command, "update") == 0) {
-            update_record();
+            if (strlen(args_start) > 0) {
+                update_record(args_start);
+            }
+            else {
+                printf("CMS: Error - Usage: UPDATE ID=... Mark/Name/Programme=...\n");
+            }
         }
         else if (strcmp(lower_command, "delete") == 0) {
-            delete_record();
+            // Pass arguments directly to delete_record
+            delete_record(args_start);
         }
-        else if (strcmp(lower_command, "sort id") == 0) {
-            sort_by_id();
-        }
-        else if (strcmp(lower_command, "sort marks") == 0) {
-            sort_by_marks();
+        else if (strcmp(lower_command, "sort") == 0) {
+            char sort_key[10];
+            if (sscanf(args_start, "%s", sort_key) == 1) {
+                to_lowercase(sort_key);
+
+                if (strcmp(sort_key, "id") == 0) {
+                    sort_by_id();
+                }
+                else if (strcmp(sort_key, "marks") == 0) {
+                    sort_by_marks();
+                }
+                else {
+                    printf("Unknown sort key. Use 'SORT ID' or 'SORT MARKS'.\n");
+                }
+            }
+            else {
+                printf("Unknown sort key. Use 'SORT ID' or 'SORT MARKS'.\n");
+            }
         }
         else if (strcmp(lower_command, "save") == 0) {
             save_data_to_file();

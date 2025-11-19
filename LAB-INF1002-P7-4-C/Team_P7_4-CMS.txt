@@ -1,5 +1,5 @@
-ID (data type: integer),Name (String),Programme (String), Marks (data type: float)
-2301234,Joshua Chen,Software Engineering, 70.5
+ID,Name,Programme,Mark
+2301234,Joshua Tan,Software Engineering,70.5
 2201234,Isaac Teo,Computer Science,63.4
 2304567,John Levoy,Digital Supply Chain,89.9
 2301235,Cookie,Monstor,69.7
