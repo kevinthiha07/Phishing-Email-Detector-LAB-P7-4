@@ -19,11 +19,11 @@
  *
  * Declared by: P7_4
  * Team members:
- * 1. XXX
- * 2. XXX
- * 3. XXX
- * 4. XXX
- * 5. XXX
+ * 1. Hermann Phua
+ * 2. Thiha (Kevin)
+ * 3. Sharlene Teo
+ * 4. Glenda Teo
+ * 5. Oh Rui Cheng
  * Date: 24 November 2025
  ***************************************************************/
 
@@ -32,6 +32,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <float.h> // Required for FLT_MAX and FLT_MIN
 
 typedef struct {
     int id;
@@ -40,136 +41,136 @@ typedef struct {
     float mark;
 } Student;
 
-Student records[100];
-int count = 0;
+// --- GLOBAL VARIABLES (Dynamic) ---
+Student* records = NULL; // Pointer for dynamic array
+int count = 0;           // Current number of records
+int capacity = 0;        // Current allocated size
 int unsaved_changes = 0;
-int file_opened = 0; // Track if file has been opened
+int file_opened = 0;
 
-// Helper function to convert a string to lowercase
+// --- MEMORY MANAGEMENT FUNCTIONS ---
+
+/* Initialize memory using calloc */
+void init_system() {
+    capacity = 10; // Initial capacity
+    records = (Student*)calloc(capacity, sizeof(Student));
+    if (records == NULL) {
+        printf("System Error: Memory allocation failed on startup.\n");
+        exit(1);
+    }
+}
+
+/* Resize memory using realloc if array is full */
+void ensure_capacity() {
+    if (count >= capacity) {
+        int new_capacity = capacity * 2;
+        Student* temp = (Student*)realloc(records, new_capacity * sizeof(Student));
+
+        if (temp == NULL) {
+            printf("System Error: Memory reallocation failed. Database full.\n");
+            return;
+        }
+
+        records = temp;
+        capacity = new_capacity;
+    }
+}
+
+/* Free memory before exit */
+void cleanup() {
+    if (records != NULL) {
+        free(records);
+        records = NULL;
+    }
+    printf("System cleanup completed. Memory freed.\n");
+}
+
+// --- UTILITY FUNCTIONS ---
+
 void to_lowercase(char* str) {
     for (int i = 0; str[i]; i++) {
         str[i] = tolower(str[i]);
     }
 }
 
-// Helper function to trim leading spaces from a string
 void trim_leading_spaces(char* str) {
-    if (str == NULL || *str == '\0') {
-        return;
-    }
+    if (str == NULL || *str == '\0') return;
     char* start = str;
-    while (*start == ' ') {
-        start++;
-    }
-    if (start != str) {
-        // Move the non-space characters to the start of the string
-        memmove(str, start, strlen(start) + 1);
-    }
+    while (*start == ' ') start++;
+    if (start != str) memmove(str, start, strlen(start) + 1);
 }
 
-/**
- * NEW HELPER FUNCTION: Checks if the first two digits of the ID are valid (21-25).
- */
 int is_valid_id_prefix(const char* id_str) {
-    if (strlen(id_str) < 2) {
-        return 0; // Not enough digits
-    }
+    if (strlen(id_str) < 2) return 0;
     char prefix_str[3];
     strncpy(prefix_str, id_str, 2);
     prefix_str[2] = '\0';
     int prefix = atoi(prefix_str);
+    if (prefix >= 21 && prefix <= 25) return 1;
+    return 0;
+}
 
-    // Check if the prefix is in the valid range [21, 25]
-    if (prefix >= 21 && prefix <= 25) {
-        return 1;
+void capitalize_words(char* str) {
+    int capitalize_next = 1;
+    for (int i = 0; str[i]; i++) {
+        if (capitalize_next && isalpha(str[i])) {
+            str[i] = toupper(str[i]);
+            capitalize_next = 0;
+        }
+        else if (str[i] == ' ') {
+            capitalize_next = 1;
+        }
+        else if (isalpha(str[i])) {
+            str[i] = tolower(str[i]);
+        }
+    }
+}
+
+int find_student_index(int id) {
+    for (int i = 0; i < count; i++) {
+        if (records[i].id == id) return i;
+    }
+    return -1;
+}
+
+int is_duplicate_data(char* name, char* programme, float mark) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(records[i].name, name) == 0 &&
+            strcmp(records[i].programme, programme) == 0 &&
+            records[i].mark == mark) {
+            return 1;
+        }
     }
     return 0;
 }
 
-void load_data_from_file() {
-    FILE* file = fopen("Team_P7_4-CMS.txt", "r");
-    if (!file) {
-        printf("Error: Cannot open Team_P7_4-CMS.txt\n");
-        return;
+void extract_and_clean(char* start_ptr, char* end_ptr, char* destination) {
+    if (end_ptr == NULL) end_ptr = start_ptr + strlen(start_ptr);
+    int len = end_ptr - start_ptr;
+    if (len < 0) len = 0;
+    strncpy(destination, start_ptr, len);
+    destination[len] = '\0';
+    trim_leading_spaces(destination);
+    int i = strlen(destination) - 1;
+    while (i >= 0 && (destination[i] == ' ' || destination[i] == ',')) {
+        destination[i] = '\0';
+        i--;
     }
-
-    char line[500];
-
-    // Skip header line
-    if (fgets(line, sizeof(line), file)) {
-        // Header found
-    }
-
-    // Read data lines
-    while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\n")] = 0;
-        if (strlen(line) == 0) continue;
-
-        int id;
-        char name[100] = "";
-        char programme[100] = "";
-        float mark;
-
-        // Parse CSV format
-        char* token;
-        int field = 0;
-        char temp_line[500];
-        strcpy(temp_line, line);
-
-        token = strtok(temp_line, ",");
-        while (token != NULL) {
-            // Remove leading spaces
-            while (*token == ' ') token++;
-            // Remove trailing spaces
-            char* end = token + strlen(token) - 1;
-            while (end > token && *end == ' ') *end-- = '\0';
-
-            switch (field) {
-            case 0: id = atoi(token); break;
-            case 1: strcpy(name, token); break;
-            case 2: strcpy(programme, token); break;
-            case 3: mark = atof(token); break;
-            }
-
-            token = strtok(NULL, ",");
-            field++;
-        }
-
-        if (field == 4) {
-            records[count].id = id;
-            strcpy(records[count].name, name);
-            strcpy(records[count].programme, programme);
-            records[count].mark = mark;
-            count++;
-        }
-    }
-
-    fclose(file);
-    file_opened = 1; // Mark file as opened
 }
 
-void save_data_to_file() {
-    if (!file_opened) {
-        printf("CMS: Error - No file opened. Use OPEN command first.\n");
-        return;
-    }
+char* find_next_key(char* current_key_start, char* base_input) {
+    char* next_key = NULL;
+    char* name_end = strstr(current_key_start + 1, "Name=");
+    char* prog_end = strstr(current_key_start + 1, "Programme=");
+    char* mark_end = strstr(current_key_start + 1, "Mark=");
+    char* id_end = strstr(current_key_start + 1, "ID=");
 
-    FILE* file = fopen("Team_P7_4-CMS.txt", "w");
-    if (!file) {
-        printf("Error: Cannot save to Team_P7_4-CMS.txt\n");
-        return;
-    }
+    if (name_end != NULL) next_key = (next_key == NULL || name_end < next_key) ? name_end : next_key;
+    if (prog_end != NULL) next_key = (next_key == NULL || prog_end < next_key) ? prog_end : next_key;
+    if (mark_end != NULL) next_key = (next_key == NULL || mark_end < next_key) ? mark_end : next_key;
+    if (id_end != NULL) next_key = (next_key == NULL || id_end < next_key) ? id_end : next_key;
 
-    fprintf(file, "ID,Name,Programme,Mark\n");
-    for (int i = 0; i < count; i++) {
-        fprintf(file, "%d,%s,%s,%.1f\n",
-            records[i].id, records[i].name,
-            records[i].programme, records[i].mark);
-    }
-
-    fclose(file);
-    unsaved_changes = 0;
-    printf("CMS: All changes saved successfully.\n");
+    return next_key;
 }
 
 void find_column_widths(int* id_width, int* name_width, int* prog_width, int* mark_width) {
@@ -195,6 +196,92 @@ void find_column_widths(int* id_width, int* name_width, int* prog_width, int* ma
 
     *name_width += 2;
     *prog_width += 2;
+}
+
+// --- CORE OPERATIONS ---
+
+void load_data_from_file() {
+    // If existing data, free and reset
+    count = 0;
+
+    FILE* file = fopen("Team_P7_4-CMS.txt", "r");
+    if (!file) {
+        printf("Error: Cannot open Team_P7_4-CMS.txt\n");
+        return;
+    }
+
+    char line[500];
+    if (fgets(line, sizeof(line), file)) { /* Skip header */ }
+
+    while (fgets(line, sizeof(line), file)) {
+        line[strcspn(line, "\n")] = 0;
+        if (strlen(line) == 0) continue;
+
+        // Ensure Dynamic Capacity
+        ensure_capacity();
+
+        int id;
+        char name[100] = "";
+        char programme[100] = "";
+        float mark;
+
+        char* token;
+        int field = 0;
+        char temp_line[500];
+        strcpy(temp_line, line);
+
+        token = strtok(temp_line, ",");
+        while (token != NULL) {
+            while (*token == ' ') token++;
+            char* end = token + strlen(token) - 1;
+            while (end > token && *end == ' ') *end-- = '\0';
+
+            switch (field) {
+            case 0: id = atoi(token); break;
+            case 1: strcpy(name, token); break;
+            case 2: strcpy(programme, token); break;
+            case 3: mark = atof(token); break;
+            }
+
+            token = strtok(NULL, ",");
+            field++;
+        }
+
+        if (field == 4) {
+            records[count].id = id;
+            strcpy(records[count].name, name);
+            strcpy(records[count].programme, programme);
+            records[count].mark = mark;
+            count++;
+        }
+    }
+
+    fclose(file);
+    file_opened = 1;
+}
+
+void save_data_to_file() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
+    FILE* file = fopen("Team_P7_4-CMS.txt", "w");
+    if (!file) {
+        printf("Error: Cannot save to Team_P7_4-CMS.txt\n");
+        return;
+    }
+
+    fprintf(file, "ID,Name,Programme,Mark\n");
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%d,%s,%s,%.1f\n",
+            records[i].id, records[i].name,
+            records[i].programme, records[i].mark);
+    }
+
+    fclose(file);
+    unsaved_changes = 0;
+    printf("CMS: All changes saved successfully.\n");
 }
 
 void show_all() {
@@ -235,205 +322,154 @@ void show_all() {
     }
 }
 
-void capitalize_words(char* str) {
-    int capitalize_next = 1;
-    for (int i = 0; str[i]; i++) {
-        if (capitalize_next && isalpha(str[i])) {
-            str[i] = toupper(str[i]);
-            capitalize_next = 0;
-        }
-        else if (str[i] == ' ') {
-            capitalize_next = 1;
-        }
-        else if (isalpha(str[i])) {
-            str[i] = tolower(str[i]);
-        }
-    }
-}
-
-int find_student_index(int id) {
-    for (int i = 0; i < count; i++) {
-        if (records[i].id == id) return i;
-    }
-    return -1;
-}
-
-int is_duplicate_data(char* name, char* programme, float mark) {
-    for (int i = 0; i < count; i++) {
-        if (strcmp(records[i].name, name) == 0 &&
-            strcmp(records[i].programme, programme) == 0 &&
-            records[i].mark == mark) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-// Helper function to extract and clean values (used in insert_record)
-void extract_and_clean(char* start_ptr, char* end_ptr, char* destination) {
-    if (end_ptr == NULL) end_ptr = start_ptr + strlen(start_ptr); // Read to end if no terminator
-    int len = end_ptr - start_ptr;
-    if (len < 0) len = 0; // Safety check
-
-    // Copy only the required length
-    strncpy(destination, start_ptr, len);
-    destination[len] = '\0';
-
-    // Trim leading spaces
-    trim_leading_spaces(destination);
-
-    // Trim trailing spaces/commas (though comma shouldn't be an issue with key=value format)
-    int i = strlen(destination) - 1;
-    while (i >= 0 && (destination[i] == ' ' || destination[i] == ',')) {
-        destination[i] = '\0';
-        i--;
-    }
-}
-
-// Helper function to find the next valid field start point after a given key
-char* find_next_key(char* current_key_start, char* base_input) {
-    char* next_key = NULL;
-    char* name_end = strstr(current_key_start + 1, "Name=");
-    char* prog_end = strstr(current_key_start + 1, "Programme=");
-    char* mark_end = strstr(current_key_start + 1, "Mark=");
-    char* id_end = strstr(current_key_start + 1, "ID=");
-
-    // Find the earliest occurrence of another key after the current key's starting position
-    if (name_end != NULL) next_key = (next_key == NULL || name_end < next_key) ? name_end : next_key;
-    if (prog_end != NULL) next_key = (next_key == NULL || prog_end < next_key) ? prog_end : next_key;
-    if (mark_end != NULL) next_key = (next_key == NULL || mark_end < next_key) ? mark_end : next_key;
-    if (id_end != NULL) next_key = (next_key == NULL || id_end < next_key) ? id_end : next_key;
-
-    return next_key;
-}
-
 /**
- * FIX: Modified to accept the ID from the command line argument string and remove the prompt.
- * Format: "QUERY ID=2401234"
+ * NEW FEATURE: SHOW SUMMARY
+ * Implementation of Summary Statistics [cite: 41]
+ * Displays:
+ * 1. Total number of students
+ * 2. Average mark
+ * 3. Highest and lowest mark with student names
  */
+void show_summary() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
+    if (count == 0) {
+        printf("CMS: No records available for summary.\n");
+        return;
+    }
+
+    float total_marks = 0.0;
+    float max_mark = -1.0;
+    float min_mark = 101.0; // Higher than max possible mark
+
+    // Indices to track who has the highest/lowest
+    int max_indices[100]; // Store multiple students if they share the same mark
+    int min_indices[100];
+    int max_count = 0;
+    int min_count = 0;
+
+    // First Pass: Calculate Sum and find Min/Max values
+    for (int i = 0; i < count; i++) {
+        total_marks += records[i].mark;
+
+        if (records[i].mark > max_mark) {
+            max_mark = records[i].mark;
+        }
+        if (records[i].mark < min_mark) {
+            min_mark = records[i].mark;
+        }
+    }
+
+    // Second Pass: Identify all students with those Min/Max values
+    for (int i = 0; i < count; i++) {
+        if (records[i].mark == max_mark) {
+            max_indices[max_count++] = i;
+        }
+        if (records[i].mark == min_mark) {
+            min_indices[min_count++] = i;
+        }
+    }
+
+    float average = total_marks / count;
+
+    printf("\n=== CLASS SUMMARY STATISTICS ===\n");
+    printf("Total Students: %d\n", count);
+    printf("Average Mark  : %.2f\n", average);
+
+    printf("--------------------------------\n");
+    printf("Highest Mark  : %.2f\n", max_mark);
+    printf("Achieved by   : ");
+    for (int i = 0; i < max_count; i++) {
+        printf("%s", records[max_indices[i]].name);
+        if (i < max_count - 1) printf(", ");
+    }
+    printf("\n");
+
+    printf("Lowest Mark   : %.2f\n", min_mark);
+    printf("Achieved by   : ");
+    for (int i = 0; i < min_count; i++) {
+        printf("%s", records[min_indices[i]].name);
+        if (i < min_count - 1) printf(", ");
+    }
+    printf("\n================================\n");
+}
+
 void query_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
     }
-
-    // Check if ID was provided
     if (strlen(input) == 0) {
         printf("CMS: Error - Missing ID. Format: QUERY ID=7-digits\n");
         return;
     }
-
     char temp_input[300];
     strcpy(temp_input, input);
-
-    // --- Extract ID ---
     char* id_ptr = strstr(temp_input, "ID=");
     if (!id_ptr) {
         printf("CMS: Error - Format must include 'ID=7-digits'.\n");
         return;
     }
-    id_ptr += 3; // Move past "ID="
-
+    id_ptr += 3;
     char id_str[8] = "";
-    // Extract exactly 7 digits
-    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) {
-        id_str[i] = id_ptr[i];
-    }
+    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) id_str[i] = id_ptr[i];
     id_str[7] = '\0';
 
     if (strlen(id_str) != 7) {
         printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
-
-    // Check for non-digit characters immediately following the 7 digits (only if ID is not the last argument)
-    if (strlen(id_ptr) > 7 && !isspace(id_ptr[7]) && id_ptr[7] != '\0') {
-        printf("CMS: Error - ID must be digits only.\n");
-        return;
-    }
-
-
     int id = atoi(id_str);
     int index = find_student_index(id);
-
     if (index == -1) {
         printf("CMS: Record with ID=%d not found.\n", id);
         return;
     }
-
     printf("CMS: Record found:\n");
-    printf("ID: %d\n", records[index].id);
-    printf("Name: %s\n", records[index].name);
-    printf("Programme: %s\n", records[index].programme);
-    printf("Mark: %.1f\n", records[index].mark);
+    printf("ID: %d\nName: %s\nProgramme: %s\nMark: %.1f\n",
+        records[index].id, records[index].name, records[index].programme, records[index].mark);
 }
 
-/**
- * FIX: Modified to accept the ID from the command line argument string and remove the prompt.
- * Format: "DELETE ID=2401234"
- */
 void delete_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
     }
-
-    // Check if ID was provided
     if (strlen(input) == 0) {
         printf("CMS: Error - Missing ID. Format: DELETE ID=7-digits\n");
         return;
     }
-
     char temp_input[300];
     strcpy(temp_input, input);
-
-    // --- Extract ID ---
     char* id_ptr = strstr(temp_input, "ID=");
     if (!id_ptr) {
         printf("CMS: Error - Format must include 'ID=7-digits'.\n");
         return;
     }
-    id_ptr += 3; // Move past "ID="
-
+    id_ptr += 3;
     char id_str[8] = "";
-    // Extract exactly 7 digits
-    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) {
-        id_str[i] = id_ptr[i];
-    }
+    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) id_str[i] = id_ptr[i];
     id_str[7] = '\0';
-
     if (strlen(id_str) != 7) {
         printf("CMS: Error - ID must be 7 digits.\n");
         return;
     }
-
-    // Check for non-digit characters immediately following the 7 digits (only if ID is not the last argument)
-    if (strlen(id_ptr) > 7 && !isspace(id_ptr[7]) && id_ptr[7] != '\0') {
-        printf("CMS: Error - ID must be digits only.\n");
-        return;
-    }
-
     int id = atoi(id_str);
     int index = find_student_index(id);
-
     if (index == -1) {
         printf("CMS: Error - ID %d not found.\n", id);
         return;
     }
-
-    printf("\nRecord to delete:\n");
-    printf("ID: %d, Name: %s, Programme: %s, Mark: %.1f\n",
-        records[index].id, records[index].name,
-        records[index].programme, records[index].mark);
-
+    printf("\nRecord to delete:\nID: %d, Name: %s, Mark: %.1f\n",
+        records[index].id, records[index].name, records[index].mark);
     printf("Confirm deletion? (yes/no): ");
     char response[10];
     fgets(response, sizeof(response), stdin);
     response[strcspn(response, "\n")] = 0;
-
-    for (int i = 0; response[i]; i++) {
-        response[i] = tolower(response[i]);
-    }
+    for (int i = 0; response[i]; i++) response[i] = tolower(response[i]);
 
     if (strcmp(response, "yes") == 0 || strcmp(response, "y") == 0) {
         for (int i = index; i < count - 1; i++) {
@@ -448,125 +484,66 @@ void delete_record(char* input) {
     }
 }
 
-
-/**
- * FIX: Modified to accept the arguments from the command line and remove all prompts.
- * Format: "ID=2401234 Name=Michelle Lee Programme=Information Security Mark=73.2"
- */
 void insert_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
         return;
     }
 
-    if (count >= 100) {
-        printf("CMS: Error - Database full.\n");
-        return;
-    }
+    // Dynamic Capacity Check
+    ensure_capacity();
 
-    // Check if input arguments were provided
     if (strlen(input) == 0) {
-        printf("CMS: Error - Missing insert data. Format: INSERT ID=... Name=... Programme=... Mark=...\n");
+        printf("CMS: Error - Missing insert data.\n");
         return;
     }
-
     char temp_input[300];
     strcpy(temp_input, input);
-
     char name[100] = "", programme[100] = "";
     float mark = -1.0;
     int id = 0;
 
-    // --- 1. Extract ID ---
     char* id_ptr = strstr(temp_input, "ID=");
-    if (!id_ptr) {
-        printf("CMS: Error - Missing required field: ID.\n");
-        return;
-    }
-    id_ptr += 3; // Move past "ID="
-
+    if (!id_ptr) { printf("CMS: Error - Missing ID.\n"); return; }
+    id_ptr += 3;
     char id_str[8] = "";
-    // Loop to extract ID characters (stop at first non-digit or end of string)
     int i = 0;
-    while (i < 7 && isdigit(id_ptr[i])) {
-        id_str[i] = id_ptr[i];
-        i++;
-    }
-    id_str[i] = '\0'; // Null-terminate at the end of the digits found
-
-    if (strlen(id_str) != 7) {
-        printf("CMS: Error - ID must be 7 digits.\n");
-        return;
-    }
-
-    // **NEW VALIDATION: Check ID Prefix**
-    if (!is_valid_id_prefix(id_str)) {
-        printf("CMS: Error - ID prefix must be 21, 22, 23, 24, or 25.\n");
-        return;
-    }
-    // **END NEW VALIDATION**
+    while (i < 7 && isdigit(id_ptr[i])) { id_str[i] = id_ptr[i]; i++; }
+    id_str[i] = '\0';
+    if (strlen(id_str) != 7) { printf("CMS: Error - ID must be 7 digits.\n"); return; }
+    if (!is_valid_id_prefix(id_str)) { printf("CMS: Error - ID prefix must be 21-25.\n"); return; }
 
     id = atoi(id_str);
+    if (find_student_index(id) != -1) { printf("CMS: Error - ID %d already exists.\n", id); return; }
 
-    if (find_student_index(id) != -1) {
-        printf("CMS: Error - ID %d already exists.\n", id);
-        return;
-    }
-
-    // --- 2. Extract Name, Programme, Marks ---
     char* name_start = strstr(temp_input, "Name=");
     char* prog_start = strstr(temp_input, "Programme=");
     char* mark_start = strstr(temp_input, "Mark=");
 
     if (!name_start || !prog_start || !mark_start) {
-        printf("CMS: Error - Missing one or more required fields (Name, Programme, Mark).\n");
+        printf("CMS: Error - Missing Name, Programme, or Mark.\n");
         return;
     }
 
-    // 1. Extract Name
     if (name_start) {
-        char* name_val_start = name_start + 5;
         char* name_stop = find_next_key(name_start, temp_input);
-        extract_and_clean(name_val_start, name_stop, name);
+        extract_and_clean(name_start + 5, name_stop, name);
     }
-
-    // 2. Extract Programme
     if (prog_start) {
-        char* prog_val_start = prog_start + 10;
         char* prog_stop = find_next_key(prog_start, temp_input);
-        extract_and_clean(prog_val_start, prog_stop, programme);
+        extract_and_clean(prog_start + 10, prog_stop, programme);
     }
-
-    // 3. Extract Marks
-    // Mark= is 5 characters
     if (mark_start && sscanf(mark_start + 5, "%f", &mark) != 1) {
-        printf("CMS: Error - Mark field missing or invalid.\n");
-        return;
+        printf("CMS: Error - Invalid Mark.\n"); return;
     }
 
-    // Final checks
-    if (strlen(name) == 0) {
-        printf("CMS: Error - Name value missing.\n");
-        return;
-    }
-    if (strlen(programme) == 0) {
-        printf("CMS: Error - Programme value missing.\n");
-        return;
-    }
-    if (mark < 0.0 || mark > 100.0) {
-        printf("CMS: Error - Marks must be 0-100.\n");
-        return;
-    }
+    if (strlen(name) == 0 || strlen(programme) == 0) { printf("CMS: Error - Empty fields.\n"); return; }
+    if (mark < 0.0 || mark > 100.0) { printf("CMS: Error - Marks must be 0-100.\n"); return; }
 
-    // --- Capitalization ---
     capitalize_words(name);
     capitalize_words(programme);
 
-    // --- Validation and Insertion ---
-    if (is_duplicate_data(name, programme, mark)) {
-        printf("CMS: Error - Duplicate record exists.\n");
-        return;
-    }
+    if (is_duplicate_data(name, programme, mark)) { printf("CMS: Error - Duplicate record.\n"); return; }
 
     records[count].id = id;
     strcpy(records[count].name, name);
@@ -577,197 +554,75 @@ void insert_record(char* input) {
     printf("CMS: Record inserted successfully.\n");
 }
 
-
-/**
- * update_record function signature:
- * Accepts the entire command line *after* the "UPDATE" keyword.
- * Example: "ID=2401234 Mark=69.8"
- */
 void update_record(char* input) {
-    if (!file_opened) {
-        printf("CMS: Error - No file opened. Use OPEN command first.\n");
-        return;
-    }
-
+    if (!file_opened) { printf("CMS: Error - No file opened.\n"); return; }
     char temp_input[300];
     strcpy(temp_input, input);
-
-    // 1. Extract ID
     char* id_ptr = strstr(temp_input, "ID=");
-    if (!id_ptr) {
-        printf("CMS: Error - Format must include 'ID=7-digits' and an updated field.\n");
-        return;
-    }
-    id_ptr += 3; // Move past "ID="
-
+    if (!id_ptr) { printf("CMS: Error - Missing ID.\n"); return; }
+    id_ptr += 3;
     char id_str[8] = "";
-    // Extract exactly 7 digits
-    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) {
-        id_str[i] = id_ptr[i];
-    }
+    for (int i = 0; i < 7 && isdigit(id_ptr[i]); i++) id_str[i] = id_ptr[i];
     id_str[7] = '\0';
-
-    if (strlen(id_str) != 7) {
-        printf("CMS: Error - ID must be 7 digits.\n");
-        return;
-    }
-
-    // **NEW VALIDATION: Check ID Prefix**
-    // NOTE: For UPDATE, we only need to check the prefix if we were allowing ID to be updated,
-    // but the ID field itself is used for locating the record and is typically not updated.
-    // However, if the logic were to allow an ID update (which is not implemented here), 
-    // the check would be necessary. We skip the prefix check here since the ID is only
-    // used to find an existing record.
-    // We will leave the prefix check out of UPDATE as per common database logic (ID is key), 
-    // but if the intent was to ensure IDs *already in the system* satisfy the rule (which they should 
-    // if INSERT enforces it), that would be a separate validation on load.
-    // For now, we only apply the requested check to the INSERT command.
-
+    if (strlen(id_str) != 7) { printf("CMS: Error - ID must be 7 digits.\n"); return; }
     int id = atoi(id_str);
     int index = find_student_index(id);
+    if (index == -1) { printf("CMS: Record %d not found.\n", id); return; }
 
-    if (index == -1) {
-        printf("CMS: The record with ID=%d does not exist.\n", id);
-        return;
-    }
-
-    // 2. Identify and extract the updated field
     char* mark_ptr = strstr(temp_input, "Mark=");
     char* name_ptr = strstr(temp_input, "Name=");
     char* prog_ptr = strstr(temp_input, "Programme=");
 
-    if (!mark_ptr && !name_ptr && !prog_ptr) {
-        printf("CMS: Error - Must specify a field to update (Mark, Name, or Programme).\n");
-        return;
-    }
-
-    // Preserve old data for duplicate check and error revert
     char new_name[100], new_prog[100];
     float new_mark;
-
     strcpy(new_name, records[index].name);
     strcpy(new_prog, records[index].programme);
     new_mark = records[index].mark;
-
     int update_made = 0;
 
-    // --- Update Mark ---
     if (mark_ptr) {
-        mark_ptr += 5; // Move past "Mark="
         float mark_val;
-        if (sscanf(mark_ptr, "%f", &mark_val) == 1) {
-            if (mark_val >= 0 && mark_val <= 100) {
-                new_mark = mark_val;
-                update_made = 1;
-                printf("CMS: The record with ID=%d is successfully updated.\n", id);
-            }
-            else {
-                printf("CMS: Error - Mark must be between 0 and 100.\n");
-                return;
-            }
+        if (sscanf(mark_ptr + 5, "%f", &mark_val) == 1 && mark_val >= 0 && mark_val <= 100) {
+            new_mark = mark_val; update_made = 1;
         }
-        else {
-            printf("CMS: Error - Invalid Mark value.\n");
-            return;
-        }
+        else { printf("CMS: Error - Invalid Mark.\n"); return; }
     }
-
-    // --- Update Programme ---
     if (prog_ptr) {
-        prog_ptr += 10; // Move past "Programme="
-        char* prog_val_start = prog_ptr;
         char temp_prog[100];
-
-        char* prog_stop = find_next_key(prog_ptr - 10, temp_input); // find_next_key needs the start of the key-value pair, -10 moves back to "Programme="
-        extract_and_clean(prog_val_start, prog_stop, temp_prog);
-
+        char* stop = find_next_key(prog_ptr, temp_input);
+        extract_and_clean(prog_ptr + 10, stop, temp_prog);
         if (strlen(temp_prog) > 0) {
-            capitalize_words(temp_prog);
-            strcpy(new_prog, temp_prog);
-            update_made = 1;
-            printf("CMS: The record with ID=%d is successfully updated.\n", id);
-        }
-        else {
-            printf("CMS: Error - Invalid Programme value.\n");
-            return;
+            capitalize_words(temp_prog); strcpy(new_prog, temp_prog); update_made = 1;
         }
     }
-
-    // --- Update Name ---
     if (name_ptr) {
-        name_ptr += 5; // Move past "Name="
-        char* name_val_start = name_ptr;
         char temp_name[100];
-
-        char* name_stop = find_next_key(name_ptr - 5, temp_input); // find_next_key needs the start of the key-value pair, -5 moves back to "Name="
-        extract_and_clean(name_val_start, name_stop, temp_name);
-
+        char* stop = find_next_key(name_ptr, temp_input);
+        extract_and_clean(name_ptr + 5, stop, temp_name);
         if (strlen(temp_name) > 0) {
-            capitalize_words(temp_name);
-            strcpy(new_name, temp_name);
-            update_made = 1;
-            printf("CMS: The record with ID=%d is successfully updated.\n", id);
-        }
-        else {
-            printf("CMS: Error - Invalid Name value.\n");
-            return;
+            capitalize_words(temp_name); strcpy(new_name, temp_name); update_made = 1;
         }
     }
 
-    if (!update_made) {
-        // This case should be mostly covered by the earlier checks, but as a fallback:
-        printf("CMS: No valid fields were provided for update.\n");
-        return;
+    if (update_made) {
+        strcpy(records[index].name, new_name);
+        strcpy(records[index].programme, new_prog);
+        records[index].mark = new_mark;
+        unsaved_changes = 1;
+        printf("CMS: Record updated successfully.\n");
     }
-
-    // 3. Final Validation (Duplicate Check)
-    // Temporarily apply the update for duplicate check
-    Student original_record = records[index]; // Save original
-    strcpy(records[index].name, new_name);
-    strcpy(records[index].programme, new_prog);
-    records[index].mark = new_mark;
-
-    // Check for duplicates (excluding the current record's original data)
-    int is_dup = 0;
-    for (int i = 0; i < count; i++) {
-        if (i != index && strcmp(records[i].name, new_name) == 0 &&
-            strcmp(records[i].programme, new_prog) == 0 &&
-            records[i].mark == new_mark) {
-            is_dup = 1;
-            break;
-        }
+    else {
+        printf("CMS: No valid fields to update.\n");
     }
-
-    if (is_dup) {
-        // Revert changes if duplicate found
-        records[index] = original_record;
-        printf("CMS: Error - Duplicate record exists after update.\n");
-        return;
-    }
-
-    // The update is applied; set the flag
-    unsaved_changes = 1;
 }
 
-
 void sort_by_id() {
-    if (!file_opened) {
-        printf("CMS: Error - No file opened. Use OPEN command first.\n");
-        return;
-    }
-
-    if (count == 0) {
-        printf("No records to sort.\n");
-        return;
-    }
-
-    // Bubble sort by ID (ascending)
+    if (!file_opened) { printf("CMS: Error - No file opened.\n"); return; }
+    if (count == 0) { printf("No records.\n"); return; }
     for (int i = 0; i < count - 1; i++) {
         for (int j = 0; j < count - i - 1; j++) {
             if (records[j].id > records[j + 1].id) {
-                Student temp = records[j];
-                records[j] = records[j + 1];
-                records[j + 1] = temp;
+                Student temp = records[j]; records[j] = records[j + 1]; records[j + 1] = temp;
             }
         }
     }
@@ -776,23 +631,12 @@ void sort_by_id() {
 }
 
 void sort_by_marks() {
-    if (!file_opened) {
-        printf("CMS: Error - No file opened. Use OPEN command first.\n");
-        return;
-    }
-
-    if (count == 0) {
-        printf("No records to sort.\n");
-        return;
-    }
-
-    // Bubble sort by marks (descending)
+    if (!file_opened) { printf("CMS: Error - No file opened.\n"); return; }
+    if (count == 0) { printf("No records.\n"); return; }
     for (int i = 0; i < count - 1; i++) {
         for (int j = 0; j < count - i - 1; j++) {
             if (records[j].mark < records[j + 1].mark) {
-                Student temp = records[j];
-                records[j] = records[j + 1];
-                records[j + 1] = temp;
+                Student temp = records[j]; records[j] = records[j + 1]; records[j + 1] = temp;
             }
         }
     }
@@ -802,19 +646,16 @@ void sort_by_marks() {
 
 void show_help() {
     printf("\n=== Available Commands ===\n");
-    if (!file_opened) {
-        printf("OPEN          - Open the student records file\n");
-    }
-    printf("SHOW ALL    - Display all student records\n");
-    printf("QUERY ID=...  - Search for a record by ID\n");
-    printf("INSERT ID=... Name=... Programme=... Mark=... - Add a new record\n");
-    printf("UPDATE ID=... Mark/Name/Programme=... - Update an existing record\n");
-    printf("DELETE ID=... - Delete a record by ID (prompts for confirmation)\n");
-    printf("SORT ID     - Sort records by ID (ascending)\n");
-    printf("SORT MARKS  - Sort records by marks (descending)\n");
-    printf("SAVE        - Save all changes to file\n");
-    printf("HELP        - Show this help message\n");
-    printf("EXIT        - Quit the program\n");
+    if (!file_opened) printf("OPEN        - Open the student records file\n");
+    printf("SHOW ALL    - Display all records\n");
+    printf("SHOW SUMMARY- Display statistics (Total, Avg, Min, Max)\n");
+    printf("QUERY ID=.. - Search record\n");
+    printf("INSERT ...  - Add record\n");
+    printf("UPDATE ...  - Update record\n");
+    printf("DELETE ...  - Delete record\n");
+    printf("SORT ID/MARKS - Sort records\n");
+    printf("SAVE        - Save changes\n");
+    printf("EXIT        - Quit\n");
     printf("==========================\n\n");
 }
 
@@ -824,28 +665,14 @@ int confirm_exit() {
         char response[10];
         fgets(response, sizeof(response), stdin);
         response[strcspn(response, "\n")] = 0;
-
-        for (int i = 0; response[i]; i++) {
-            response[i] = tolower(response[i]);
-        }
-
-        if (strcmp(response, "yes") == 0 || strcmp(response, "y") == 0) {
-            return 1;
-        }
-        else {
-            printf("Exit cancelled.\n");
-            return 0;
-        }
+        if (strcmp(response, "yes") == 0 || strcmp(response, "y") == 0) return 1;
+        return 0;
     }
     return 1;
 }
 
 void open_file() {
-    if (file_opened) {
-        printf("CMS: File is already opened.\n");
-        return;
-    }
-
+    if (file_opened) { printf("CMS: File already opened.\n"); return; }
     load_data_from_file();
     if (file_opened) {
         printf("CMS: Team_P7_4-CMS.txt opened successfully.\n");
@@ -854,6 +681,9 @@ void open_file() {
 }
 
 int main() {
+    // --- INITIALIZE DYNAMIC MEMORY ---
+    init_system();
+
     char command_line[300];
     char command[50];
     char lower_command[50];
@@ -863,102 +693,56 @@ int main() {
 
     while (1) {
         printf("P7_4: ");
-        // Read the entire line of input
         fgets(command_line, sizeof(command_line), stdin);
         command_line[strcspn(command_line, "\n")] = 0;
 
-        // Use a temporary copy for tokenizing (since strtok modifies the string)
         char temp_line[300];
         strcpy(temp_line, command_line);
-
-        // --- 1. Extract the Command Token ---
         char* token = strtok(temp_line, " ");
-        if (token == NULL) {
-            printf("\n");
-            continue; // Empty line
-        }
+        if (token == NULL) { printf("\n"); continue; }
 
-        // Save the command and convert to lowercase
         strcpy(command, token);
         strcpy(lower_command, command);
         to_lowercase(lower_command);
 
-        // --- 2. Find the start of the Arguments in the original line ---
         char* args_start = command_line + strlen(command);
-        // Skip any immediate spaces after the command word
-        while (*args_start == ' ') {
-            args_start++;
-        }
+        while (*args_start == ' ') args_start++;
 
-        // --- 3. Command Handling ---
-        if (strcmp(lower_command, "open") == 0) {
-            open_file();
-        }
+        if (strcmp(lower_command, "open") == 0) open_file();
         else if (strcmp(lower_command, "show") == 0) {
-            if (strcmp(args_start, "all") == 0) {
-                show_all();
-            }
-            else {
-                printf("Unknown command. Type HELP for available commands.\n");
-            }
+            char lower_args[50];
+            strcpy(lower_args, args_start);
+            to_lowercase(lower_args);
+
+            if (strcmp(lower_args, "all") == 0) show_all();
+            else if (strcmp(lower_args, "summary") == 0) show_summary();
+            else printf("Unknown command. Use 'SHOW ALL' or 'SHOW SUMMARY'.\n");
         }
-        else if (strcmp(lower_command, "query") == 0) {
-            // Pass arguments directly to query_record
-            query_record(args_start);
-        }
-        else if (strcmp(lower_command, "insert") == 0) {
-            // Pass arguments directly to insert_record
-            insert_record(args_start);
-        }
-        else if (strcmp(lower_command, "update") == 0) {
-            if (strlen(args_start) > 0) {
-                update_record(args_start);
-            }
-            else {
-                printf("CMS: Error - Usage: UPDATE ID=... Mark/Name/Programme=...\n");
-            }
-        }
-        else if (strcmp(lower_command, "delete") == 0) {
-            // Pass arguments directly to delete_record
-            delete_record(args_start);
-        }
+        else if (strcmp(lower_command, "query") == 0) query_record(args_start);
+        else if (strcmp(lower_command, "insert") == 0) insert_record(args_start);
+        else if (strcmp(lower_command, "update") == 0) update_record(args_start);
+        else if (strcmp(lower_command, "delete") == 0) delete_record(args_start);
         else if (strcmp(lower_command, "sort") == 0) {
             char sort_key[10];
             if (sscanf(args_start, "%s", sort_key) == 1) {
                 to_lowercase(sort_key);
-
-                if (strcmp(sort_key, "id") == 0) {
-                    sort_by_id();
-                }
-                else if (strcmp(sort_key, "marks") == 0) {
-                    sort_by_marks();
-                }
-                else {
-                    printf("Unknown sort key. Use 'SORT ID' or 'SORT MARKS'.\n");
-                }
+                if (strcmp(sort_key, "id") == 0) sort_by_id();
+                else if (strcmp(sort_key, "marks") == 0) sort_by_marks();
+                else printf("Unknown sort key.\n");
             }
-            else {
-                printf("Unknown sort key. Use 'SORT ID' or 'SORT MARKS'.\n");
-            }
+            else printf("Unknown sort key.\n");
         }
-        else if (strcmp(lower_command, "save") == 0) {
-            save_data_to_file();
-        }
-        else if (strcmp(lower_command, "help") == 0) {
-            show_help();
-        }
+        else if (strcmp(lower_command, "save") == 0) save_data_to_file();
+        else if (strcmp(lower_command, "help") == 0) show_help();
         else if (strcmp(lower_command, "exit") == 0) {
             if (confirm_exit()) {
+                cleanup(); // Free dynamic memory
                 printf("Goodbye!\n");
                 break;
             }
         }
-        else {
-            printf("Unknown command. Type HELP for available commands.\n");
-        }
-
+        else printf("Unknown command.\n");
         printf("\n");
     }
-
     return 0;
 }
