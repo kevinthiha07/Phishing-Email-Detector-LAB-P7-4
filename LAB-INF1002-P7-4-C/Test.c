@@ -1,6 +1,4 @@
-﻿
-
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -370,6 +368,101 @@ void show_summary() {
     printf("\n================================\n");
 }
 
+/**
+ * NEW FEATURE: CHART - ASCII Grade Distribution
+ * Displays a horizontal bar chart showing grade distribution
+ * Grade ranges: A (80-100), B (70-79), C (60-69), D (50-59), F (0-49)
+ */
+void show_chart() {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
+    if (count == 0) {
+        printf("CMS: No records available for chart.\n");
+        return;
+    }
+
+    // Initialize grade counters
+    int grade_A = 0, grade_B = 0, grade_C = 0, grade_D = 0, grade_F = 0;
+
+    // Count students in each grade range
+    for (int i = 0; i < count; i++) {
+        float mark = records[i].mark;
+        if (mark >= 80.0) grade_A++;
+        else if (mark >= 70.0) grade_B++;
+        else if (mark >= 60.0) grade_C++;
+        else if (mark >= 50.0) grade_D++;
+        else grade_F++;
+    }
+
+    // Calculate percentages
+    float percent_A = (float)grade_A / count * 100;
+    float percent_B = (float)grade_B / count * 100;
+    float percent_C = (float)grade_C / count * 100;
+    float percent_D = (float)grade_D / count * 100;
+    float percent_F = (float)grade_F / count * 100;
+
+    // Find maximum count for scaling the chart
+    int max_count = grade_A;
+    if (grade_B > max_count) max_count = grade_B;
+    if (grade_C > max_count) max_count = grade_C;
+    if (grade_D > max_count) max_count = grade_D;
+    if (grade_F > max_count) max_count = grade_F;
+
+    // Scale factor for bar length (max 50 characters)
+    float scale = (max_count > 0) ? 50.0 / max_count : 1.0;
+
+    printf("\n=== GRADE DISTRIBUTION CHART ===\n");
+    printf("Total Students: %d\n\n", count);
+
+    // Display chart with proper formatting - using ASCII characters
+    printf("+---------+----------------------------------------------------+-------------+\n");
+    printf("| Grade   | Distribution Chart                               | Count (%%)   |\n");
+    printf("+---------+----------------------------------------------------+-------------+\n");
+
+    // Grade A - using '#' instead of block character
+    printf("| A (80+) | ");
+    int bar_length_A = (int)(grade_A * scale);
+    for (int i = 0; i < bar_length_A; i++) printf("#");
+    for (int i = bar_length_A; i < 50; i++) printf(" ");
+    printf(" | %2d (%5.1f%%) |\n", grade_A, percent_A);
+
+    // Grade B
+    printf("| B (70-79)| ");
+    int bar_length_B = (int)(grade_B * scale);
+    for (int i = 0; i < bar_length_B; i++) printf("#");
+    for (int i = bar_length_B; i < 50; i++) printf(" ");
+    printf(" | %2d (%5.1f%%) |\n", grade_B, percent_B);
+
+    // Grade C
+    printf("| C (60-69)| ");
+    int bar_length_C = (int)(grade_C * scale);
+    for (int i = 0; i < bar_length_C; i++) printf("#");
+    for (int i = bar_length_C; i < 50; i++) printf(" ");
+    printf(" | %2d (%5.1f%%) |\n", grade_C, percent_C);
+
+    // Grade D
+    printf("| D (50-59)| ");
+    int bar_length_D = (int)(grade_D * scale);
+    for (int i = 0; i < bar_length_D; i++) printf("#");
+    for (int i = bar_length_D; i < 50; i++) printf(" ");
+    printf(" | %2d (%5.1f%%) |\n", grade_D, percent_D);
+
+    // Grade F
+    printf("| F (0-49) | ");
+    int bar_length_F = (int)(grade_F * scale);
+    for (int i = 0; i < bar_length_F; i++) printf("#");
+    for (int i = bar_length_F; i < 50; i++) printf(" ");
+    printf(" | %2d (%5.1f%%) |\n", grade_F, percent_F);
+
+    printf("+---------+----------------------------------------------------+-------------+\n");
+
+    printf("\nChart Scale: Each # represents approximately %.1f students\n", max_count / 50.0);
+    printf("================================================================\n");
+}
+
 void query_record(char* input) {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
@@ -622,6 +715,7 @@ void show_help() {
     if (!file_opened) printf("OPEN        - Open the student records file\n");
     printf("SHOW ALL    - Display all records\n");
     printf("SHOW SUMMARY- Display statistics (Total, Avg, Min, Max)\n");
+    printf("SHOW CHART  - Display grade distribution chart\n");
     printf("QUERY ID=.. - Search record\n");
     printf("INSERT ...  - Add record\n");
     printf("UPDATE ...  - Update record\n");
@@ -685,7 +779,7 @@ void print_declaration() {
 int main() {
     // --- INITIALIZE DYNAMIC MEMORY ---
     init_system();
-	print_declaration();
+    print_declaration();
 
     char command_line[300];
     char command[50];
@@ -719,7 +813,8 @@ int main() {
 
             if (strcmp(lower_args, "all") == 0) show_all();
             else if (strcmp(lower_args, "summary") == 0) show_summary();
-            else printf("Unknown command. Use 'SHOW ALL' or 'SHOW SUMMARY'.\n");
+            else if (strcmp(lower_args, "chart") == 0) show_chart();
+            else printf("Unknown command. Use 'SHOW ALL', 'SHOW SUMMARY', or 'SHOW CHART'.\n");
         }
         else if (strcmp(lower_command, "query") == 0) query_record(args_start);
         else if (strcmp(lower_command, "insert") == 0) insert_record(args_start);
@@ -749,7 +844,3 @@ int main() {
     }
     return 0;
 }
-
-
-
-
