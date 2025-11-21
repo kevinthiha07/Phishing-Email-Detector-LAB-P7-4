@@ -1,31 +1,4 @@
-﻿/***************************************************************
- * Declaration
- * SIT’s policy on copying does not allow the students to copy
- * source code as well as assessment solutions from another
- * person AI or other places. It is the students’ responsibility
- * to guarantee that their assessment solutions are their own
- * work. Meanwhile, the students must also ensure that their
- * work is not accessible by others. Where such plagiarism is
- * detected, both of the assessments involved will receive ZERO
- * mark.
- *
- * We hereby declare that:
- * • We fully understand and agree to the abovementioned plagiarism policy.
- * • We did not copy any code from others or from other places.
- * • We did not share our codes with others or upload to any other places for public access and will not do that in the future.
- * • We agree that our project will receive Zero mark if there is any plagiarism detected.
- * • We agree that we will not disclose any information or material of the group project to others or upload to any other places for public access.
- * • We agree that we did not copy any code directly from AI generated sources
- *
- * Declared by: P7_4
- * Team members:
- * 1. Hermann Phua
- * 2. Thiha (Kevin)
- * 3. Sharlene Teo
- * 4. Glenda Teo
- * 5. Oh Rui Cheng
- * Date: 24 November 2025
- ***************************************************************/
+﻿
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
@@ -680,9 +653,39 @@ void open_file() {
     }
 }
 
+void print_declaration() {
+    printf("***************************************************************\n");
+    printf("Declaration\n");
+    printf("SIT’s policy on copying does not allow the students to copy\n");
+    printf("source code as well as assessment solutions from another\n");
+    printf("person AI or other places. It is the students’ responsibility\n");
+    printf("to guarantee that their assessment solutions are their own\n");
+    printf("work. Meanwhile, the students must also ensure that their\n");
+    printf("work is not accessible by others. Where such plagiarism is\n");
+    printf("detected, both of the assessments involved will receive ZERO\n");
+    printf("mark.\n\n");
+    printf("We hereby declare that:\n");
+    printf("• We fully understand and agree to the abovementioned plagiarism policy.\n");
+    printf("• We did not copy any code from others or from other places.\n");
+    printf("• We did not share our codes with others or upload to any other places for public access and will not do that in the future.\n");
+    printf("• We agree that our project will receive Zero mark if there is any plagiarism detected.\n");
+    printf("• We agree that we will not disclose any information or material of the group project to others or upload to any other places for public access.\n");
+    printf("• We agree that we did not copy any code directly from AI generated sources\n\n");
+    printf("Declared by: P7_4\n");
+    printf("Team members:\n");
+    printf("1. Hermann Phua\n");
+    printf("2. Thiha (Kevin)\n");
+    printf("3. Sharlene Teo\n");
+    printf("4. Glenda Teo\n");
+    printf("5. Oh Rui Cheng\n");
+    printf("Date: 24 November 2025\n");
+    printf("***************************************************************\n\n");
+}
+
 int main() {
     // --- INITIALIZE DYNAMIC MEMORY ---
     init_system();
+	print_declaration();
 
     char command_line[300];
     char command[50];
@@ -746,3 +749,7 @@ int main() {
     }
     return 0;
 }
+
+
+
+
