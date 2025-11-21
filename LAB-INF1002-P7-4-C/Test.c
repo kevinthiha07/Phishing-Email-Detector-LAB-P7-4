@@ -490,9 +490,27 @@ void query_record(char* input) {
         printf("CMS: Record with ID=%d not found.\n", id);
         return;
     }
-    printf("CMS: Record found:\n");
-    printf("ID: %d\nName: %s\nProgramme: %s\nMark: %.1f\n",
-        records[index].id, records[index].name, records[index].programme, records[index].mark);
+
+    // Use the same table format as show_all()
+    printf("CMS: Record found:\n\n");
+
+    int id_width, name_width, prog_width, mark_width;
+    find_column_widths(&id_width, &name_width, &prog_width, &mark_width);
+
+    printf("%-*s  %-*s  %-*s  %s\n",
+        id_width, "ID", name_width, "Name",
+        prog_width, "Programme", "Mark");
+
+    int total_width = id_width + name_width + prog_width + mark_width + 10;
+    for (int i = 0; i < total_width; i++) printf("=");
+    printf("\n");
+
+    // Display the single record in table format
+    printf("%-*d  %-*s  %-*s  %.1f\n",
+        id_width, records[index].id,
+        name_width, records[index].name,
+        prog_width, records[index].programme,
+        records[index].mark);
 }
 
 void delete_record(char* input) {
