@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <float.h> // Required for FLT_MAX and FLT_MIN
+#include <windows.h>
 
 typedef struct {
     int id;
@@ -417,41 +418,45 @@ void show_chart() {
     // Grade A - using '#' instead of block character
     printf("| A (80+)  | ");
     int bar_length_A = (int)(grade_A * scale);
-    for (int i = 0; i < bar_length_A; i++) printf("%c", 219);
+    for (int i = 0; i < bar_length_A; i++) printf(u8"█");
     for (int i = bar_length_A; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_A, percent_A);
+    printf("\n");
 
     // Grade B
     printf("| B (70-79)| ");
     int bar_length_B = (int)(grade_B * scale);
-    for (int i = 0; i < bar_length_B; i++) printf("%c", 219);
+    for (int i = 0; i < bar_length_B; i++) printf(u8"█");
     for (int i = bar_length_B; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_B, percent_B);
+    printf("\n");
 
     // Grade C
     printf("| C (60-69)| ");
     int bar_length_C = (int)(grade_C * scale);
-    for (int i = 0; i < bar_length_C; i++) printf("%c", 219);
+    for (int i = 0; i < bar_length_C; i++) printf(u8"█");
     for (int i = bar_length_C; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_C, percent_C);
+    printf("\n");
 
     // Grade D
     printf("| D (50-59)| ");
     int bar_length_D = (int)(grade_D * scale);
-    for (int i = 0; i < bar_length_D; i++) printf("%c", 219);
+    for (int i = 0; i < bar_length_D; i++) printf(u8"█");
     for (int i = bar_length_D; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_D, percent_D);
+    printf("\n");
 
     // Grade F
     printf("| F (0-49) | ");
     int bar_length_F = (int)(grade_F * scale);
-    for (int i = 0; i < bar_length_F; i++) printf("%c", 219);
+    for (int i = 0; i < bar_length_F; i++) printf(u8"█");
     for (int i = bar_length_F; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_F, percent_F);
+    printf("\n");
 
     printf("+----------+----------------------------------------------------+-------------+\n");
 
-    printf("================================================================\n");
 }
 
 void query_record(char* input) {
@@ -770,6 +775,7 @@ void print_declaration() {
 }
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
     // --- INITIALIZE DYNAMIC MEMORY ---
     init_system();
     print_declaration();
@@ -837,3 +843,4 @@ int main() {
     }
     return 0;
 }
+
