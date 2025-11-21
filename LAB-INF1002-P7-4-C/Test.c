@@ -71,15 +71,7 @@ void trim_leading_spaces(char* str) {
     if (start != str) memmove(str, start, strlen(start) + 1);
 }
 
-int is_valid_id_prefix(const char* id_str) {
-    if (strlen(id_str) < 2) return 0;
-    char prefix_str[3];
-    strncpy(prefix_str, id_str, 2);
-    prefix_str[2] = '\0';
-    int prefix = atoi(prefix_str);
-    if (prefix >= 21 && prefix <= 25) return 1;
-    return 0;
-}
+// --- REMOVED: is_valid_id_prefix function ---
 
 void capitalize_words(char* str) {
     int capitalize_next = 1;
@@ -295,7 +287,7 @@ void show_all() {
 
 /**
  * NEW FEATURE: SHOW SUMMARY
- * Implementation of Summary Statistics [cite: 41]
+ * Implementation of Summary Statistics
  * Displays:
  * 1. Total number of students
  * 2. Average mark
@@ -577,7 +569,9 @@ void insert_record(char* input) {
     while (i < 7 && isdigit(id_ptr[i])) { id_str[i] = id_ptr[i]; i++; }
     id_str[i] = '\0';
     if (strlen(id_str) != 7) { printf("CMS: Error - ID must be 7 digits.\n"); return; }
-    if (!is_valid_id_prefix(id_str)) { printf("CMS: Error - ID prefix must be 21-25.\n"); return; }
+
+    // --- REMOVED: is_valid_id_prefix check ---
+    // if (!is_valid_id_prefix(id_str)) { printf("CMS: Error - ID prefix must be 21-25.\n"); return; }
 
     id = atoi(id_str);
     if (find_student_index(id) != -1) { printf("CMS: Error - ID %d already exists.\n", id); return; }
