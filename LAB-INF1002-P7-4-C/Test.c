@@ -410,48 +410,47 @@ void show_chart() {
     printf("Total Students: %d\n\n", count);
 
     // Display chart with proper formatting - using ASCII characters
-    printf("+---------+----------------------------------------------------+-------------+\n");
-    printf("| Grade   | Distribution Chart                               | Count (%%)   |\n");
-    printf("+---------+----------------------------------------------------+-------------+\n");
+    printf("+----------+----------------------------------------------------+-------------+\n");
+    printf("| Grade    | Distribution Chart                                 | Count (%%)   |\n");
+    printf("+----------+----------------------------------------------------+-------------+\n");
 
     // Grade A - using '#' instead of block character
-    printf("| A (80+) | ");
+    printf("| A (80+)  | ");
     int bar_length_A = (int)(grade_A * scale);
-    for (int i = 0; i < bar_length_A; i++) printf("#");
+    for (int i = 0; i < bar_length_A; i++) printf("%c", 219);
     for (int i = bar_length_A; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_A, percent_A);
 
     // Grade B
     printf("| B (70-79)| ");
     int bar_length_B = (int)(grade_B * scale);
-    for (int i = 0; i < bar_length_B; i++) printf("#");
+    for (int i = 0; i < bar_length_B; i++) printf("%c", 219);
     for (int i = bar_length_B; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_B, percent_B);
 
     // Grade C
     printf("| C (60-69)| ");
     int bar_length_C = (int)(grade_C * scale);
-    for (int i = 0; i < bar_length_C; i++) printf("#");
+    for (int i = 0; i < bar_length_C; i++) printf("%c", 219);
     for (int i = bar_length_C; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_C, percent_C);
 
     // Grade D
     printf("| D (50-59)| ");
     int bar_length_D = (int)(grade_D * scale);
-    for (int i = 0; i < bar_length_D; i++) printf("#");
+    for (int i = 0; i < bar_length_D; i++) printf("%c", 219);
     for (int i = bar_length_D; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_D, percent_D);
 
     // Grade F
     printf("| F (0-49) | ");
     int bar_length_F = (int)(grade_F * scale);
-    for (int i = 0; i < bar_length_F; i++) printf("#");
+    for (int i = 0; i < bar_length_F; i++) printf("%c", 219);
     for (int i = bar_length_F; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_F, percent_F);
 
-    printf("+---------+----------------------------------------------------+-------------+\n");
+    printf("+----------+----------------------------------------------------+-------------+\n");
 
-    printf("\nChart Scale: Each # represents approximately %.1f students\n", max_count / 50.0);
     printf("================================================================\n");
 }
 
