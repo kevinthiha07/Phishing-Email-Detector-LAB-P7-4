@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <float.h> // Required for FLT_MAX and FLT_MIN
-#include <windows.h>
 
 typedef struct {
     int id;
@@ -248,6 +247,79 @@ void save_data_to_file() {
     printf("CMS: All changes saved successfully.\n");
 }
 
+void show_all_sorted(int ascending) {
+    if (!file_opened) {
+        printf("CMS: Error - No file opened. Use OPEN command first.\n");
+        return;
+    }
+
+    if (count == 0) {
+        printf("CMS: No records found.\n");
+        return;
+    }
+
+    // Create a temporary array for sorting
+    Student* temp_records = (Student*)malloc(count * sizeof(Student));
+    if (temp_records == NULL) {
+        printf("CMS: Error - Memory allocation failed for sorting.\n");
+        return;
+    }
+
+    // Copy records to temporary array
+    for (int i = 0; i < count; i++) {
+        temp_records[i] = records[i];
+    }
+
+    // Sort the temporary array by marks
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            int should_swap = 0;
+
+            // Sort by marks only
+            if (ascending) {
+                should_swap = (temp_records[j].mark > temp_records[j + 1].mark);
+            }
+            else {
+                should_swap = (temp_records[j].mark < temp_records[j + 1].mark);
+            }
+
+            if (should_swap) {
+                Student temp = temp_records[j];
+                temp_records[j] = temp_records[j + 1];
+                temp_records[j + 1] = temp;
+            }
+        }
+    }
+
+    printf("CMS: Here are all the records sorted by mark (%s):\n\n", ascending ? "Ascending" : "Descending");
+
+    int id_width, name_width, prog_width, mark_width;
+    find_column_widths(&id_width, &name_width, &prog_width, &mark_width);
+
+    printf("%-*s  %-*s  %-*s  %s\n",
+        id_width, "ID", name_width, "Name",
+        prog_width, "Programme", "Mark");
+
+    int total_width = id_width + name_width + prog_width + mark_width + 10;
+    for (int i = 0; i < total_width; i++) printf("=");
+    printf("\n");
+
+    for (int i = 0; i < count; i++) {
+        printf("%-*d  %-*s  %-*s  %.1f\n",
+            id_width, temp_records[i].id,
+            name_width, temp_records[i].name,
+            prog_width, temp_records[i].programme,
+            temp_records[i].mark);
+    }
+
+    printf("\nTotal records: %d\n", count);
+    if (unsaved_changes) {
+        printf("⚠️  Unsaved changes - Use 'SAVE' to save\n");
+    }
+
+    free(temp_records);
+}
+
 void show_all() {
     if (!file_opened) {
         printf("CMS: Error - No file opened. Use OPEN command first.\n");
@@ -418,45 +490,41 @@ void show_chart() {
     // Grade A - using '#' instead of block character
     printf("| A (80+)  | ");
     int bar_length_A = (int)(grade_A * scale);
-    for (int i = 0; i < bar_length_A; i++) printf(u8"█");
+    for (int i = 0; i < bar_length_A; i++) printf("%c", 219);
     for (int i = bar_length_A; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_A, percent_A);
-    printf("\n");
 
     // Grade B
     printf("| B (70-79)| ");
     int bar_length_B = (int)(grade_B * scale);
-    for (int i = 0; i < bar_length_B; i++) printf(u8"█");
+    for (int i = 0; i < bar_length_B; i++) printf("%c", 219);
     for (int i = bar_length_B; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_B, percent_B);
-    printf("\n");
 
     // Grade C
     printf("| C (60-69)| ");
     int bar_length_C = (int)(grade_C * scale);
-    for (int i = 0; i < bar_length_C; i++) printf(u8"█");
+    for (int i = 0; i < bar_length_C; i++) printf("%c", 219);
     for (int i = bar_length_C; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_C, percent_C);
-    printf("\n");
 
     // Grade D
     printf("| D (50-59)| ");
     int bar_length_D = (int)(grade_D * scale);
-    for (int i = 0; i < bar_length_D; i++) printf(u8"█");
+    for (int i = 0; i < bar_length_D; i++) printf("%c", 219);
     for (int i = bar_length_D; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_D, percent_D);
-    printf("\n");
 
     // Grade F
     printf("| F (0-49) | ");
     int bar_length_F = (int)(grade_F * scale);
-    for (int i = 0; i < bar_length_F; i++) printf(u8"█");
+    for (int i = 0; i < bar_length_F; i++) printf("%c", 219);
     for (int i = bar_length_F; i < 50; i++) printf(" ");
     printf(" | %2d (%5.1f%%) |\n", grade_F, percent_F);
-    printf("\n");
 
     printf("+----------+----------------------------------------------------+-------------+\n");
 
+    printf("================================================================\n");
 }
 
 void query_record(char* input) {
@@ -728,17 +796,20 @@ void sort_by_marks() {
 
 void show_help() {
     printf("\n=== Available Commands ===\n");
-    if (!file_opened) printf("OPEN        - Open the student records file\n");
-    printf("SHOW ALL    - Display all records\n");
-    printf("SHOW SUMMARY- Display statistics (Total, Avg, Min, Max)\n");
-    printf("SHOW CHART  - Display grade distribution chart\n");
-    printf("QUERY ID=.. - Search record\n");
-    printf("INSERT ...  - Add record\n");
-    printf("UPDATE ...  - Update record\n");
-    printf("DELETE ...  - Delete record\n");
-    printf("SORT ID/MARKS - Sort records\n");
-    printf("SAVE        - Save changes\n");
-    printf("EXIT        - Quit\n");
+    if (!file_opened)
+        printf("OPEN                    - Open the student records file\n");
+    printf("SHOW ALL                    - Display all records\n");
+    printf("SHOW ALL SORT BY            - Display records sorted by mark with order prompt\n");
+    printf("SHOW SUMMARY                - Display statistics (Total, Avg, Min, Max)\n");
+    printf("SHOW CHART                  - Display grade distribution chart\n");
+    printf("QUERY ID=...                - Search record by ID\n");
+    printf("INSERT ID=... Name=... Programme=... Mark=... - Add record\n");
+    printf("UPDATE ID=... [Name=...] [Programme=...] [Mark=...] - Update record\n");
+    printf("DELETE ID=...                - Delete record by ID\n");
+    printf("SORT ID                     - Sort records by ID (permanent)\n");
+    printf("SORT MARKS                  - Sort records by marks (permanent)\n");
+    printf("SAVE                        - Save changes\n");
+    printf("EXIT                        - Quit\n");
     printf("==========================\n\n");
 }
 
@@ -793,7 +864,6 @@ void print_declaration() {
 }
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
     // --- INITIALIZE DYNAMIC MEMORY ---
     init_system();
     print_declaration();
@@ -824,14 +894,37 @@ int main() {
 
         if (strcmp(lower_command, "open") == 0) open_file();
         else if (strcmp(lower_command, "show") == 0) {
-            char lower_args[50];
+            char lower_args[100];
             strcpy(lower_args, args_start);
             to_lowercase(lower_args);
 
-            if (strcmp(lower_args, "all") == 0) show_all();
+            if (strcmp(lower_args, "all") == 0) {
+                show_all();
+            }
+            else if (strcmp(lower_args, "all sort by") == 0) {
+                // New implementation with second prompt
+                printf("Sort by (ASC/DESC): ");
+                char order[10];
+                fgets(order, sizeof(order), stdin);
+                order[strcspn(order, "\n")] = 0;
+                to_lowercase(order);
+
+                int ascending = 1; // Default to ascending
+                if (strcmp(order, "desc") == 0 || strcmp(order, "descending") == 0) {
+                    ascending = 0;
+                }
+                else if (strcmp(order, "asc") == 0 || strcmp(order, "ascending") == 0) {
+                    ascending = 1;
+                }
+                else {
+                    printf("CMS: Invalid order. Using default (ASC).\n");
+                }
+
+                show_all_sorted(ascending);
+            }
             else if (strcmp(lower_args, "summary") == 0) show_summary();
             else if (strcmp(lower_args, "chart") == 0) show_chart();
-            else printf("Unknown command. Use 'SHOW ALL', 'SHOW SUMMARY', or 'SHOW CHART'.\n");
+            else printf("Unknown command. Use 'SHOW ALL', 'SHOW ALL SORT BY', 'SHOW SUMMARY', or 'SHOW CHART'.\n");
         }
         else if (strcmp(lower_command, "query") == 0) query_record(args_start);
         else if (strcmp(lower_command, "insert") == 0) insert_record(args_start);
@@ -861,4 +954,3 @@ int main() {
     }
     return 0;
 }
-
